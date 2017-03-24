@@ -6,6 +6,7 @@
 package de.hsbo.copernicus.processing;
 
 import java.io.File;
+import org.esa.snap.core.datamodel.Product;
 
 /**
  *
@@ -13,5 +14,5 @@ import java.io.File;
  */
 public interface RasterProcessor extends Processor{
     
-    public void compute(File input, File output);
+    public void compute(Product input, File output);
 }

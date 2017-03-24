@@ -19,18 +19,14 @@ public class AdapterFactory {
     aws, scihub, codede
 **/
     private static HashSet<String> allowedTyes;
-    private HashMap<String, Adapter> adapters;
+    private HashMap<Integer, Adapter> adapters;
     private static AdapterFactory instance;
+    public static final int AWS = 1;
+    public static final int CODEDE = 2;
+    public static final int SCIHUB = 1;
 
     private AdapterFactory() {
         adapters = new <Integer, Adapter>HashMap();
-        new HashSet<String>() {
-            {
-                add("aws");
-                add("codede");
-                add("scihub");
-            }
-        };
     }
 
     public static AdapterFactory getInstance() {
@@ -65,18 +61,18 @@ public class AdapterFactory {
      * @param type: name of the expected adapter
      * @return an instance of an adapter of the specified type
      */
-    public Adapter getAdapter(String type) {
+    public Adapter getAdapter(int type) {
         if (allowedTyes.contains(type)) {
             if (adapters.isEmpty() && !adapters.containsKey(type)) {
                 Adapter adapter = null;
                 switch (type) {
-                    case "aws":
+                    case 1:
                         adapter = AdapterAws.getInstance();
                         break;
-                    case "codede":
+                    case 2:
                         adapter = AdapterCodede.getInstance();
                         break;
-                    case "scihub":
+                    case 3:
                         adapter = AdapterScihub.getInstance();
                         break;
                 }

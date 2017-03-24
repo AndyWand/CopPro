@@ -6,6 +6,7 @@
 package de.hsbo.copernicus.processing;
 
 import java.io.File;
+import org.esa.snap.core.datamodel.Product;
 
 /**
  * This interface is to provide methods methods with a vector result
@@ -15,7 +16,7 @@ import java.io.File;
 public interface VectorProcessor extends Processor {
 
     @Override
-    public default void compute(File input, File output) {
+    public default void compute(Product input, File output) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

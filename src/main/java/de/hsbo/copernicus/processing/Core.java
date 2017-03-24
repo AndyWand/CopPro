@@ -25,7 +25,6 @@ import org.esa.snap.core.datamodel.Product;
  */
 public class Core {
 
-    public static final String name = "";
     private Core instance;
     //processors includes a set of available Processors idantified by an integer >1
     //"0" is reserved for "No Processor"
@@ -159,6 +158,17 @@ public class Core {
         } catch (IOException ex) {
             Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public void loadDataToPDM(File file) {
+        Product product;
+        try {
+            product = ProductIO.readProduct(file);
+        } catch (IOException ex) {
+            Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return;
     }
 
 }
