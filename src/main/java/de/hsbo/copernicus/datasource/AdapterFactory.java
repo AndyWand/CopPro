@@ -6,11 +6,13 @@
 package de.hsbo.copernicus.datasource;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
- *
- * @author Andreas
+ * This Factory provides an easy way to get an adapter to one of the porals that
+ * provide Sentinel Products.
+ * If you just request any adapter the factory provides any in the order:
+ * AWS, CODE_DE, SciHub
+ * @author Andreas Wandert
  */
 public class AdapterFactory {
 
@@ -18,13 +20,11 @@ public class AdapterFactory {
     There are three possible values for type:
     aws, scihub, codede
 **/
-    private static HashSet<String> allowedTyes;
     private HashMap<Integer, Adapter> adapters;
     private static AdapterFactory instance;
     public static final int AWS = 1;
     public static final int CODEDE = 2;
     public static final int SCIHUB = 1;
-
     private AdapterFactory() {
         adapters = new <Integer, Adapter>HashMap();
     }
@@ -37,7 +37,8 @@ public class AdapterFactory {
     }
 
     /**
-     *
+     * This is the default method to request an adapter 
+     * the order is: CODE_DE, AWS, SciHub
      * @returns an adapter which is available online
      */
     public Adapter getAdapter() {
@@ -57,31 +58,28 @@ public class AdapterFactory {
     }
 
     /**
-     *
-     * @param type: name of the expected adapter
+     * This mathod is to requste an adapter for a specific portal
+     * @param type: name of the expected adapter as an integer constant
      * @return an instance of an adapter of the specified type
      */
     public Adapter getAdapter(int type) {
-        if (allowedTyes.contains(type)) {
-            if (adapters.isEmpty() && !adapters.containsKey(type)) {
-                Adapter adapter = null;
-                switch (type) {
-                    case 1:
-                        adapter = AdapterAws.getInstance();
-                        break;
-                    case 2:
-                        adapter = AdapterCodede.getInstance();
-                        break;
-                    case 3:
-                        adapter = AdapterScihub.getInstance();
-                        break;
-                }
-                adapters.put(type, adapter);
-                return adapter;
-            } else {
-                return adapters.get(type);
+        if (adapters.isEmpty() && !adapters.containsKey(type)) {
+            Adapter adapter = null;
+            switch (type) {
+                case 1:
+                    adapter = AdapterAws.getInstance();
+                    break;
+                case 2:
+                    adapter = AdapterCodede.getInstance();
+                    break;
+                case 3:
+                    adapter = AdapterScihub.getInstance();
+                    break;
             }
+            adapters.put(type, adapter);
+            return adapter;
+        } else {
+            return adapters.get(type);
         }
-        return null;
     }
 }

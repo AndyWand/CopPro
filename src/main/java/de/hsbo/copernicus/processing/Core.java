@@ -13,18 +13,22 @@ import java.util.logging.Logger;
 import org.esa.snap.core.dataio.ProductIO;
 import org.esa.snap.core.datamodel.Product;
 
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
- *
+ * This class manages the communication to the portals and the processors. It's
+ * the main entry point for all external applications. The loaded data ate
+ * managed internally in a PDM.
+ * <link>https://senbox.atlassian.net/wiki/display/SNAP/Product+Data+Model</link>
+ * To get a list of currently available processors use getProcessors.
+ * Or add a new processor by using addProcessor.
+ * 
  * @author Andreas Wandert
  */
 public class Core {
 
+    /**
+     * processors includes a set of available Processors idantified by an
+     * integer >1 "0" is reserved for "No Processor"
+     */
     private Core instance;
     //processors includes a set of available Processors idantified by an integer >1
     //"0" is reserved for "No Processor"
@@ -88,7 +92,7 @@ public class Core {
             output = new File("");
             //call the compute method to start computation of an output file
             Processor pro = processors.get(type);
-            pro.compute(input, output);
+            // pro.compute(input, output);
 
             return output;
         } else {
@@ -154,7 +158,7 @@ public class Core {
         String file = "deinPath";
         try {
             Product readProduct = ProductIO.readProduct(file);
-            readProduct.g
+//            readProduct.g
         } catch (IOException ex) {
             Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -167,7 +171,7 @@ public class Core {
         } catch (IOException ex) {
             Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return;
     }
 

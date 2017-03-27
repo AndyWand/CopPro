@@ -10,16 +10,21 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <snap.version>6.0.0-SNAPSHOT</snap.version>
+        <snap-engine.version>6.0.0-SNAPSHOT</snap-engine.version>
         <geotools.version>17-SNAPSHOT</geotools.version>
+        <java.version>1.8.0</java.version>
+        <maven.version>3.3.9</maven.version>
+        <maven.compiler-plugin.version>3.6.1</maven.compiler-plugin.version>
+        <mojo.version>2.3</mojo.version>
+        <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
+        
     </properties>
     
-    <dependencies>
+    <dependencies>       
         <dependency>
-            <groupId>com.oracle</groupId>
-            <artifactId>tools</artifactId>
-            <scope>system</scope>
-            <systemPath>C:\Program Files\Java\jdk1.8.0_121\lib\tools.jar</systemPath>
-            <version>1.8.0</version>
+            <groupId>com.oracle.tools</groupId>
+            <artifactId>oracle-tools-all</artifactId>
+            <version>2.0.0-RC9</version>
         </dependency>
         <dependency>
             <groupId>org.esa.snap</groupId>
@@ -54,7 +59,7 @@
         <dependency>
             <groupId>org.esa.snap</groupId>
             <artifactId>snap-engine</artifactId>
-            <version>5.0.0</version>
+            <version>${snap-engine.version}</version>
         </dependency>
         <dependency>
             <groupId>org.esa.s2tbx</groupId>
@@ -64,12 +69,18 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-swing</artifactId>
-            <version>${geotools.version}</version>
+            <version>16.2</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-hsql</artifactId>
-            <version>${geotools.version}</version>
+            <version>17-RC1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-api</artifactId>
+            <version>2.7.4</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
     
@@ -83,21 +94,25 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
+                <version>${maven.compiler-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
+                <version>${mojo.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
+                <version>${mojo.version}</version>
+            </plugin>            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
-                    <useDefaultManifestFile>true</useDefaultManifestFile>
+                    <useDefaultManifestFile>false</useDefaultManifestFile>
                 </configuration>
+                <version>${maven-jar-plugin.version}</version>
             </plugin>
         </plugins>
         <pluginManagement>

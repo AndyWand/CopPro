@@ -1,5 +1,6 @@
 package de.hsbo.copernicus.datasource;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,17 +11,31 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.HashMap;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.TransformException;
 
+/**
+ * This adapter is to provide communication to Sentinel-2 on AWS
+ * <link>http://sentinel-pds.s3-website.eu-central-1.amazonaws.com/</link>
+ * performs a data download without queryig or filtering because AWS doesn't
+ * offer this
+ *
+ * @author Andreas Wandert
+ */
 public class AdapterAws extends Adapter {
 
     public static final String name = "aws";
-    private static Adapter instance;
+    private static AdapterAws instance;
     private static String baseURL = "http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/";
 
     private AdapterAws() {
     }
 
-    public static Adapter getInstance() {
+    public static AdapterAws getInstance() {
         if (AdapterAws.instance == null) {
             AdapterAws.instance = new AdapterAws();
         }
@@ -38,7 +53,7 @@ public class AdapterAws extends Adapter {
     // zone.
     private static Integer year; // year the data was collected e.g. 2014
     private static Integer month; // mouth of year e.g. 5
-    private static Integer day; // day of month e.g. 10
+    private static Integer day; // day of month e.g. 
     private static Integer sequence;
 
     private static char[] possibleLatBands = {'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R',
@@ -59,7 +74,7 @@ public class AdapterAws extends Adapter {
         String queryString = "";
 
         // Validate passed parameters
-        // and construct a valid query by using the available parameters
+        // and construct a valid query by using the passed parameters
         if (utmZone <= 60 && utmZone >= 1) {
             queryString += "#tiles/" + utmZone;
         }
@@ -69,31 +84,8 @@ public class AdapterAws extends Adapter {
             }
         }
 
-        // create a HashMap for all possible values of the first character in
-        // square string
-        HashMap<Integer, char[]> planSquares = new HashMap<Integer, char[]>();
-        char line1[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
-        char line2[] = {'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R'};
-        char line3[] = {'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-        planSquares.put(2, line2);
-        planSquares.put(1, line1);
-        planSquares.put(0, line3);
-
-        // perform test of 'square'
-        // test length
-        if (square.length() == 2) {
-            // test if first digit is valid
-            for (char c : planSquares.get(square.charAt(0) % 3)) {
-                if (c == square.charAt(0)) {
-
-                    // test if secon ddigit is valid
-                }
-            }
-
-        }
         // perform test of 'year'
         // year should be a 4 digit number greater or equal then 2015
-
         year = startDate.get(Calendar.YEAR);
         month = startDate.get(Calendar.MONTH);
         day = startDate.get(Calendar.DAY_OF_MONTH);
@@ -198,10 +190,7 @@ public class AdapterAws extends Adapter {
         boolean flag = false;
         try {
             Ip = InetAddress.getByName("172.217.21.238");
-            System.out.println(Ip);
             flag = Ip.isReachable(10);
-
-            System.out.println(flag);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -220,4 +209,68 @@ public class AdapterAws extends Adapter {
         }
     }
 
+    /**
+     * This Method is to transform expected input coordinates from geographic
+     * lat/lon to WGS84 UTM coordinates **for internal use only**
+     *
+     * @param x lat-coordinate in decimal degree
+     * @param y lon-coordinate in decimal degree
+     * @return String-array format is: 
+     * [0]: UTM-Zone 
+     * [1]: latitude band
+     * [2]: square
+     * 
+     * licensing
+     * this method is using code from https://www.ibm.com/developerworks/apps/download/index.jsp?contentid=250050&filename=j-coordconvert.zip&method=http&locale=
+     */
+    public String[] transform(double x, double y) throws FactoryException, TransformException {
+        CoordinateConversion converter = new CoordinateConversion();
+        String pointInMGRS = converter.latLon2MGRUTM(x, y);
+
+        //Target format is: UTM-Code, Latitude-Band, Square
+        String[] result = new String[3];
+        //first too digits for UTM-Zone
+        if (pointInMGRS.substring(0, 1).equals("0")) {
+            result[0] = pointInMGRS.substring(1, 2);
+        } else {
+            result[0] = pointInMGRS.substring(0, 2);
+        }
+        //third digit for lat-band
+        result[1] = pointInMGRS.substring(2, 3);
+        //forth two digits for square
+        result[2] = pointInMGRS.substring(3, 5);
+        /**
+         * //result-array for result coordinates in mgrs as UTM-code,
+         * latitude-band square String[] result = {""};
+         * CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:4326");
+         * CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:4647");
+         * Coordinate coordinate = new Coordinate(x, y);
+         *
+         * MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS,
+         * false); JTS.transform(coordinate, coordinate, transform);
+         *
+         * System.out.print(coordinate.toString());
+         *
+         * /**
+         * This section is to transform coordinates from UTM to MGRS (military
+         * Grid)
+         *
+         * // create a HashMap for all possible values of the first character
+         * in // square string final HashMap<Integer, char[]> planSquares = new
+         * HashMap<Integer, char[]>(); char line1[] = {'A', 'B', 'C', 'D', 'E',
+         * 'F', 'G', 'H'}; char line2[] = {'J', 'K', 'L', 'M', 'N', 'P', 'Q',
+         * 'R'}; char line3[] = {'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+         * planSquares.put(2, line2); planSquares.put(1, line1);
+         * planSquares.put(0, line3);
+         *
+         * // perform test of 'square' // test length if (square.length() == 2)
+         * { // test if first digit is valid for (char c :
+         * planSquares.get(square.charAt(0) % 3)) { if (c == square.charAt(0)) {
+         *
+         * // test if second digit is valid } }
+         *
+         * }
+         */
+        return result;
+    }
 }

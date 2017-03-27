@@ -6,28 +6,30 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.HashMap;
-
+/**
+ * This adapter provides query and download of Sentinel-2 products
+ * from Scientific Data Hub (SciHub) by ESA.
+ * 
+ * @author Andreas Wandert
+ */
 public class AdapterScihub extends Adapter {
 
     // This URL is for ODATA-Hub
     private static final String baseURL = "https://scihub.copernicus.eu/apihub/";
     //For the Open Search API use "https://scihub.copernicus.eu/dhus/search" instead
     private static Adapter instance;
-    public static final String name ="scihub";
-    
-    /**This is a List of available parameter to query a product:
-     * For geometric filtering
-     * q=foodprint:"INtersects(Point)"
-     * q=foodprint:"Intersects(POLYGON((Point coordinates in decimal degees)))"
-     * For time filtering
-     * q=ingestiondate:[], beginposition, endposition 
-     * platformname
-     * platformname:Sentinel-2
-     * Others:
-     * cloudcoverage, swathidentifier, producttype, orbitdirection, orbitnumber, filename
-     * for more see: https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/3FullTextSearch
-     */
+    public static final String name = "scihub";
 
+    /**
+     * This is a List of available parameter to query a product: For geometric
+     * filtering q=foodprint:"INtersects(Point)"
+     * q=foodprint:"Intersects(POLYGON((Point coordinates in decimal degees)))"
+     * For time filtering q=ingestiondate:[], beginposition, endposition
+     * platformname platformname:Sentinel-2 Others: cloudcoverage,
+     * swathidentifier, producttype, orbitdirection, orbitnumber, filename for
+     * more see:
+     * https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/3FullTextSearch
+     */
     private AdapterScihub() {
     }
 
@@ -40,6 +42,21 @@ public class AdapterScihub extends Adapter {
 
     public String query(Calendar startDate, Calendar endDate, Rectangle bbox,
             HashMap<String, String> additionalParameter) {
+        
+        //extract date and time
+        final Integer startYear = startDate.get(Calendar.YEAR);
+        final Integer startMonth = startDate.get(Calendar.MONTH);
+        final Integer startDay = startDate.get(Calendar.DAY_OF_MONTH);
+        final Integer startHour = startDate.get(Calendar.HOUR);
+        final Integer startMinute = startDate.get(Calendar.MINUTE);
+        final Integer startSecond = startDate.get(Calendar.SECOND);
+
+        final Integer endYear = endDate.get(Calendar.YEAR);
+        final Integer endMonth = endDate.get(Calendar.MONTH);
+        final Integer endDay = endDate.get(Calendar.DAY_OF_MONTH);
+        final Integer endHour = endDate.get(Calendar.HOUR);
+        final Integer endMinute = endDate.get(Calendar.MINUTE);
+        final Integer endSecond = endDate.get(Calendar.SECOND);
         // TODO Auto-generated method stub
 
         return null;

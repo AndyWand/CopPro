@@ -24,9 +24,9 @@ public class NDVI implements RasterProcessor {
         //TODO Read file into a Product Reader
         //pick proper bands from the product 
         //pass this to computeTile
-        n.
+        
 
-        n.computeTile(targetBand, targetTile, ProgressMonitor.NULL);
+       // n.computeTile(targetBand, targetTile, ProgressMonitor.NULL);
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
