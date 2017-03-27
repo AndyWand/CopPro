@@ -1,6 +1,6 @@
 package de.hsbo.copernicus.datasource;
 
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
@@ -63,7 +63,7 @@ public class AdapterCodede extends Adapter {
         return AdapterCodede.instance;
     }
 
-    public String query(Calendar startDate, Calendar endDate, Rectangle bbox,
+    public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) throws IOException {
 
         // transform input parameter into a valid request string
@@ -184,7 +184,7 @@ public class AdapterCodede extends Adapter {
     }
 
     @Override
-    public File request(Calendar startDate, Calendar endDate, Rectangle bbox,
+    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) throws IOException {
         if (this.isOnline()) {
             //TODO specify passed String parameters

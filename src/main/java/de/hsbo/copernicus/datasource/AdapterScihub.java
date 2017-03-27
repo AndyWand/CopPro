@@ -1,15 +1,16 @@
 package de.hsbo.copernicus.datasource;
 
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.HashMap;
+
 /**
- * This adapter provides query and download of Sentinel-2 products
- * from Scientific Data Hub (SciHub) by ESA.
- * 
+ * This adapter provides query and download of Sentinel-2 products from
+ * Scientific Data Hub (SciHub) by ESA.
+ *
  * @author Andreas Wandert
  */
 public class AdapterScihub extends Adapter {
@@ -40,9 +41,9 @@ public class AdapterScihub extends Adapter {
         return AdapterScihub.instance;
     }
 
-    public String query(Calendar startDate, Calendar endDate, Rectangle bbox,
+    public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) {
-        
+
         //extract date and time
         final Integer startYear = startDate.get(Calendar.YEAR);
         final Integer startMonth = startDate.get(Calendar.MONTH);
@@ -95,7 +96,7 @@ public class AdapterScihub extends Adapter {
     }
 
     @Override
-    public File request(Calendar startDate, Calendar endDate, Rectangle bbox, HashMap<String, String> additionalParameter) throws IOException {
+    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter) throws IOException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

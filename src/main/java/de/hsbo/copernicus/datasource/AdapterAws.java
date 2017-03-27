@@ -1,7 +1,6 @@
 package de.hsbo.copernicus.datasource;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,12 +10,6 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.HashMap;
-import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
 
 /**
  * This adapter is to provide communication to Sentinel-2 on AWS
@@ -30,7 +23,7 @@ public class AdapterAws extends Adapter {
 
     public static final String name = "aws";
     private static AdapterAws instance;
-    private static String baseURL = "http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/";
+    private static String baseURL = "http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/tiles";
 
     private AdapterAws() {
     }
@@ -42,72 +35,61 @@ public class AdapterAws extends Adapter {
         return AdapterAws.instance;
     }
 
-    /**
-     * these are all the necessary parameters to request an aws resource.
-     */
-    private int UTM_Zone; // e.g. 10 - grid zone designator.
-    private int latitude_band; // e.g. S - latitude band are lettered C- X
-    // (omitting the letters "I" and "O").
-    private String square; // pair of letters designating one of the
-    // 100,000-meter side grid squares inside the grid
-    // zone.
-    private static Integer year; // year the data was collected e.g. 2014
-    private static Integer month; // mouth of year e.g. 5
-    private static Integer day; // day of month e.g. 
-    private static Integer sequence;
-
-    private static char[] possibleLatBands = {'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R',
-        'S', 'T', 'U', 'V', 'W'};
-    private static final int BUFFER_SIZE = 4096;
+    private static final int BUFFER_SIZE = 4096; //Buffer for download
 
     @Override
-    public String query(Calendar startDate, Calendar endDate, Rectangle bbox,
+    public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) {
+        String queryString = baseURL;
         // the following parameters need to be calulated by thransforming the
         // input parameters to UTM mGrid
-        //
-        final Integer utmZone = 0;
-        final Integer latitude_band = 0;
-        final String square = "";
-        sequence = Integer.parseInt(additionalParameter.get("sequence"));
+        double lat = bbox.getCenterX();
+        double lon = bbox.getCenterY();
+        String[] pointInMGRS = transform(lat, lon);
 
-        String queryString = "";
-
-        // Validate passed parameters
-        // and construct a valid query by using the passed parameters
-        if (utmZone <= 60 && utmZone >= 1) {
-            queryString += "#tiles/" + utmZone;
-        }
-        for (char c : possibleLatBands) {
-            if (latitude_band == c) {
-                queryString += '/' + latitude_band;
-            }
-        }
+        // UTM Zone e.g. 10 - grid zone designator.
+        String utmZone = pointInMGRS[0];
+        queryString += '/' + utmZone;
+        // latitude band e.g. S - latitude band are lettered C- X
+        // (omitting the letters "I" and "O").
+        String latitudeBand = pointInMGRS[1];
+        queryString += '/' + latitudeBand;
+        // square: pair of letters designating one of the
+        // 100,000-meter side grid squares inside the grid
+        // zone.
+        String square = pointInMGRS[2];
+        queryString += '/' + square;
 
         // perform test of 'year'
         // year should be a 4 digit number greater or equal then 2015
-        year = startDate.get(Calendar.YEAR);
-        month = startDate.get(Calendar.MONTH);
-        day = startDate.get(Calendar.DAY_OF_MONTH);
+        int year = startDate.get(Calendar.YEAR);  // year the data was collected e.g. 2014
+        int month = startDate.get(Calendar.MONTH);  // mouth of year e.g. 5
+        int day = startDate.get(Calendar.DAY_OF_MONTH); // day of month e.g. 
 
-        if (year > 2015 && String.valueOf(year).length() == 4) {
-            queryString += '/' + year;
+        if (year >= 2015 && String.valueOf(year).length() == 4) {
+            queryString += '/' + String.valueOf(year);
         }
 
         // perform test of 'month'
         if (String.valueOf(month).length() <= 2 && String.valueOf(month).length() >= 1 && month >= 1 && month <= 12) {
-            queryString += '/' + month;
+            queryString += '/' + String.valueOf(month);
         }
 
         // perform test of 'day'
-        if (String.valueOf(day).length() <= 1 && String.valueOf(month).length() >= 2 && day >= 1 && day <= 31) {
-            queryString += '/' + day;
+        if (String.valueOf(day).length() >= 1 && String.valueOf(month).length() <= 2 && day >= 1 && day <= 31) {
+            queryString += '/' + String.valueOf(day);
         }
         // perform test of 'sequence'
-        if (String.valueOf(sequence).length() >= 1) {
-            queryString += '/' + sequence;
+        if (additionalParameter.containsKey("sequence")) {
+            queryString += '/' + additionalParameter.get("sequence");
+        } else {
+            queryString += '/' + "0";
+        }
+        if (additionalParameter.containsKey("band")){
+            queryString +='/'+additionalParameter.get("band")+".jp2";
         }
         // return the baseURL to query
+        System.out.println(queryString);
         return queryString;
 
     }
@@ -119,13 +101,14 @@ public class AdapterAws extends Adapter {
      *
      * @param fileURL HTTP baseURL of the file to be downloaded
      * @param saveDir path of the directory to save the file
+     * @return
      * @throws IOException
      */
     @Override
     public File download(String fileURL, String saveDir) throws IOException {
 
         File result = null;
-        final String defaultsaveDir = "./resultDataset";
+        final String defaultsaveDir = "./";
         if (saveDir.isEmpty()) {
             saveDir = defaultsaveDir;
         }
@@ -179,7 +162,10 @@ public class AdapterAws extends Adapter {
             System.out.println("No file to download. Server replied HTTP code: " + responseCode);
         }
         httpConn.disconnect();
-
+        
+        
+        String[] urlsegments = fileURL.split("/");
+        result = new File(saveDir+"/"+urlsegments[urlsegments.length-1]);
         return result;
     }
 
@@ -199,7 +185,7 @@ public class AdapterAws extends Adapter {
 
     }
 
-    public File request(Calendar startDate, Calendar endDate, Rectangle bbox,
+    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) throws IOException {
         if (isOnline()) {
             String fileURL = query(startDate, endDate, bbox, additionalParameter);
@@ -213,19 +199,17 @@ public class AdapterAws extends Adapter {
      * This Method is to transform expected input coordinates from geographic
      * lat/lon to WGS84 UTM coordinates **for internal use only**
      *
-     * @param x lat-coordinate in decimal degree
-     * @param y lon-coordinate in decimal degree
-     * @return String-array format is: 
-     * [0]: UTM-Zone 
-     * [1]: latitude band
-     * [2]: square
-     * 
-     * licensing
-     * this method is using code from https://www.ibm.com/developerworks/apps/download/index.jsp?contentid=250050&filename=j-coordconvert.zip&method=http&locale=
+     * @param lat lat-coordinate in decimal degree
+     * @param lon lon-coordinate in decimal degree
+     * @return String-array format is: [0]: UTM-Zone [1]: latitude band [2]:
+     * square
+     *
+     * licensing this method is using code from
+     * https://www.ibm.com/developerworks/apps/download/index.jsp?contentid=250050&filename=j-coordconvert.zip&method=http&locale=
      */
-    public String[] transform(double x, double y) throws FactoryException, TransformException {
+    private String[] transform(double lat, double lon) {
         CoordinateConversion converter = new CoordinateConversion();
-        String pointInMGRS = converter.latLon2MGRUTM(x, y);
+        String pointInMGRS = converter.latLon2MGRUTM(lat, lon);
 
         //Target format is: UTM-Code, Latitude-Band, Square
         String[] result = new String[3];

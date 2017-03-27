@@ -5,7 +5,7 @@
  */
 package de.hsbo.copernicus.datasource;
 
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
@@ -29,8 +29,15 @@ public abstract class Adapter {
      * *
      * Method to query for datasats in a specific area, period of time, sensor
      * TODO: bbox should be a Geometry Object with spatial reference system
+     *
+     * @param startDate
+     * @param endDate
+     * @param bbox
+     * @param additionalParameter
+     * @return
+     * @throws java.io.IOException
      */
-    protected abstract String query(Calendar startDate, Calendar endDate, Rectangle bbox,
+    protected abstract String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) throws IOException;
 
     /**
@@ -46,9 +53,11 @@ public abstract class Adapter {
      * @param startDate
      * @param endDate
      * @param bbox
+     * @param additionalParameter
      * @return
+     * @throws java.io.IOException
      */
-    abstract public File request(Calendar startDate, Calendar endDate, Rectangle bbox,
+    abstract public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) throws IOException;
 
     abstract public boolean isOnline();
