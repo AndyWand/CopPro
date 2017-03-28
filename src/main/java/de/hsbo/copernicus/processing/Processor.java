@@ -16,6 +16,6 @@ public interface Processor {
 
     final static String name = "";
 
-    abstract public void compute(Product input, File output);
+    public void compute(Product input, File output);
 
 }

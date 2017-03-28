@@ -1,6 +1,6 @@
 package de.hsbo.copernicus.datasource;
 
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
@@ -16,17 +16,37 @@ import java.util.logging.Logger;
  */
 public class DataSourceFacade {
 
-    public static File request(Calendar startDate, Calendar endDate, Rectangle bbox,
+    private File result;
+
+    /**
+     *
+     * @param startDate
+     * @param endDate
+     * @param bbox
+     * @param additionalParameter
+     * @return
+     */
+    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) {
 
-        
-        File file = null;
-        Adapter source = AdapterFactory.getInstance().getAdapter();
+        AdapterFactory factory;
+        factory = AdapterFactory.getInstance();
+        Adapter source = factory.getAdapter(AdapterFactory.AWS);
+
+        source.setQuery(startDate, endDate, bbox, additionalParameter, result);
+        /**
+         * instanciate a new Thread and use this to execute the source-Adapter
+         */
+        Thread t = new Thread(source);
+        t.start();
         try {
-            source.query(startDate, endDate, bbox, additionalParameter);
-        } catch (IOException ex) {
+            t.join();
+        } catch (InterruptedException ex) {
             Logger.getLogger(DataSourceFacade.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return file;
-    }    
+        result = source.getResult();
+
+        return result;
+    }
+
 }

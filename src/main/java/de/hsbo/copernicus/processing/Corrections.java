@@ -14,6 +14,10 @@ import org.esa.snap.core.datamodel.Product;
  */
 public class Corrections implements RasterProcessor {
 
+    public Corrections(){
+        
+    }
+    
     @Override
     public void compute(Product input, File output) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

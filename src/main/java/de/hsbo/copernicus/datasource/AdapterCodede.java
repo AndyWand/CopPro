@@ -12,6 +12,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.net.*;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -34,6 +36,11 @@ public class AdapterCodede extends Adapter {
     private static String baseURL = "https://code-de.org/opensearch/request/?";
     private static Adapter instance;
     public static final String name = "codede";
+
+    private Calendar start, end;
+    private Rectangle2D bbox;
+    private HashMap additionalParameter;
+    private File result;
 
     /**
      * Attributes nesseary to perform a proper query only in this adapter
@@ -59,8 +66,9 @@ public class AdapterCodede extends Adapter {
     public static Adapter getInstance() {
         if (AdapterCodede.instance == null) {
             AdapterCodede.instance = new AdapterCodede();
+            return instance;
         }
-        return AdapterCodede.instance;
+        return instance;
     }
 
     public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
@@ -184,18 +192,32 @@ public class AdapterCodede extends Adapter {
     }
 
     @Override
-    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox,
-            HashMap<String, String> additionalParameter) throws IOException {
-        if (this.isOnline()) {
-            //TODO specify passed String parameters
-            return download(new String(), new String());
-        }
-        return null;
+    public File download(String fileURL, String saveDir) throws IOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public File download(String fileURL, String saveDir) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter, File file) {
+        this.start = startDate;
+        this.end = endDate;
+        this.bbox = bbox;
+        this.additionalParameter = additionalParameter;
+        this.result = file;
+    }
+
+    @Override
+    public void run() {
+        try {
+            //TODO specify passed String parameters
+            this.result = download(new String(), new String());
+        } catch (IOException ex) {
+            Logger.getLogger(AdapterCodede.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public File getResult() {
+        return this.result;
     }
 
 }

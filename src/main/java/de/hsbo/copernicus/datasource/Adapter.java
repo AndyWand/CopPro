@@ -15,7 +15,7 @@ import java.util.HashMap;
  *
  * @author Andreas
  */
-public abstract class Adapter {
+public abstract class Adapter implements Runnable {
 
     /**
      * instance is an object of class DataSource to ensure that there is only
@@ -24,6 +24,7 @@ public abstract class Adapter {
     private static Adapter instance;
     private static String baseURL;
     public static final String name = "";
+    public static File result;
 
     /**
      * *
@@ -47,18 +48,34 @@ public abstract class Adapter {
     abstract File download(String fileURL, String saveDir) throws IOException;
 
     /**
-     * *
-     * ask a specific datasource whether its online or not
+     * Method to test waether a Portal is available
+     *
+     * @return
+     */
+    abstract public boolean isOnline();
+
+    /**
      *
      * @param startDate
      * @param endDate
      * @param bbox
      * @param additionalParameter
-     * @return
-     * @throws java.io.IOException
+     * @param file
      */
-    abstract public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox,
-            HashMap<String, String> additionalParameter) throws IOException;
+    public abstract void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox,
+            HashMap<String, String> additionalParameter, File file);
 
-    abstract public boolean isOnline();
+    /**
+     * Starts an execution
+     */
+    @Override
+    public abstract void run();
+
+    /**
+     *
+     * @return file: file object passed in setQuery
+     */
+    public abstract File getResult();
+
+
 }

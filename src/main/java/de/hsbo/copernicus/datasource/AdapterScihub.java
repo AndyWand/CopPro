@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This adapter provides query and download of Sentinel-2 products from
@@ -20,6 +22,10 @@ public class AdapterScihub extends Adapter {
     //For the Open Search API use "https://scihub.copernicus.eu/dhus/search" instead
     private static Adapter instance;
     public static final String name = "scihub";
+    private Calendar start, end;
+    private Rectangle2D bbox;
+    private HashMap additionalParameter;
+    private File result;
 
     /**
      * This is a List of available parameter to query a product: For geometric
@@ -37,8 +43,9 @@ public class AdapterScihub extends Adapter {
     public static Adapter getInstance() {
         if (AdapterScihub.instance == null) {
             instance = new AdapterScihub();
+            return instance;
         }
-        return AdapterScihub.instance;
+        return instance;
     }
 
     public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
@@ -96,8 +103,27 @@ public class AdapterScihub extends Adapter {
     }
 
     @Override
-    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter) throws IOException {
+    public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter, File file) {
+        this.start = startDate;
+        this.end = endDate;
+        this.bbox = bbox;
+        this.additionalParameter = additionalParameter;
+        this.result = file;
+    }
+
+    @Override
+    public void run() {
+        try {
+            this.result = download("", "");
+        } catch (IOException ex) {
+            Logger.getLogger(AdapterScihub.class.getName()).log(Level.SEVERE, null, ex);
+        }
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public File getResult() {
+        return this.result;
     }
 
 }

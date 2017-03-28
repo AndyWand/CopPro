@@ -10,6 +10,8 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This adapter is to provide communication to Sentinel-2 on AWS
@@ -24,6 +26,10 @@ public class AdapterAws extends Adapter {
     public static final String name = "aws";
     private static AdapterAws instance;
     private static String baseURL = "http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/tiles";
+    private Calendar start, end;
+    private Rectangle2D bbox;
+    private HashMap additionalParameter;
+    private File result;
 
     private AdapterAws() {
     }
@@ -31,6 +37,7 @@ public class AdapterAws extends Adapter {
     public static AdapterAws getInstance() {
         if (AdapterAws.instance == null) {
             AdapterAws.instance = new AdapterAws();
+            return AdapterAws.instance;
         }
         return AdapterAws.instance;
     }
@@ -85,8 +92,8 @@ public class AdapterAws extends Adapter {
         } else {
             queryString += '/' + "0";
         }
-        if (additionalParameter.containsKey("band")){
-            queryString +='/'+additionalParameter.get("band")+".jp2";
+        if (additionalParameter.containsKey("band")) {
+            queryString += '/' + additionalParameter.get("band") + ".jp2";
         }
         // return the baseURL to query
         System.out.println(queryString);
@@ -162,10 +169,9 @@ public class AdapterAws extends Adapter {
             System.out.println("No file to download. Server replied HTTP code: " + responseCode);
         }
         httpConn.disconnect();
-        
-        
+
         String[] urlsegments = fileURL.split("/");
-        result = new File(saveDir+"/"+urlsegments[urlsegments.length-1]);
+        result = new File(saveDir + "/" + urlsegments[urlsegments.length - 1]);
         return result;
     }
 
@@ -183,16 +189,6 @@ public class AdapterAws extends Adapter {
         }
         return flag;
 
-    }
-
-    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox,
-            HashMap<String, String> additionalParameter) throws IOException {
-        if (isOnline()) {
-            String fileURL = query(startDate, endDate, bbox, additionalParameter);
-            return this.download(fileURL, "");
-        } else {
-            return null;
-        }
     }
 
     /**
@@ -257,4 +253,30 @@ public class AdapterAws extends Adapter {
          */
         return result;
     }
+
+    @Override
+    public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter, File file) {
+        this.start = startDate;
+        this.end = endDate;
+        this.bbox = bbox;
+        this.additionalParameter = additionalParameter;
+        this.result = file;
+    }
+
+    @Override
+    public void run() {
+        try {
+            String query = this.query(this.start, this.end, this.bbox, this.additionalParameter);
+            this.result = this.download(query, "");
+        } catch (IOException ex) {
+            Logger.getLogger(AdapterAws.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    @Override
+    public File getResult() {
+        return this.result;
+    }
+
 }
