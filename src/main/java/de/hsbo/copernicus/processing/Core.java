@@ -1,8 +1,7 @@
 package de.hsbo.copernicus.processing;
 
 import de.hsbo.copernicus.datasource.*;
-import de.hsbo.copernicus.processing.*;
-import java.awt.geom.Rectangle2D;
+import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;

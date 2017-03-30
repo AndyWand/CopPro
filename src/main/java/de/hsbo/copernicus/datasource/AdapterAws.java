@@ -1,6 +1,6 @@
 package de.hsbo.copernicus.datasource;
 
-import java.awt.geom.Rectangle2D;
+import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -49,9 +49,10 @@ public class AdapterAws extends Adapter {
             HashMap<String, String> additionalParameter) {
         String queryString = baseURL;
         // the following parameters need to be calulated by thransforming the
-        // input parameters to UTM mGrid
-        double lat = bbox.getCenterX();
-        double lon = bbox.getCenterY();
+        // input parameters to UTM mGrid        
+
+        double lat = bbox.centroid().x();
+        double lon = bbox.centroid().y();
         String[] pointInMGRS = transform(lat, lon);
 
         // UTM Zone e.g. 10 - grid zone designator.
@@ -123,7 +124,7 @@ public class AdapterAws extends Adapter {
         URL url = new URL(fileURL);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         int responseCode = httpConn.getResponseCode();
-
+                
         // always check HTTP response code first
         if (responseCode == HttpURLConnection.HTTP_OK) {
             String fileName = "";

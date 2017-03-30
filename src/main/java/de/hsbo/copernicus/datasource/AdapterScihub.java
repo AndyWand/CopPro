@@ -1,6 +1,6 @@
 package de.hsbo.copernicus.datasource;
 
-import java.awt.geom.Rectangle2D;
+import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -75,6 +75,7 @@ public class AdapterScihub extends Adapter {
 
     }
 
+    @Override
     public boolean isOnline() {
         // check if service at 'baseURL' is available
         InetAddress Ip;
@@ -87,13 +88,8 @@ public class AdapterScihub extends Adapter {
             System.out.println(flag);
         } catch (IOException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
         }
-        if (flag) {
-            return true;
-        } else {
-            return false;
-        }
+        return flag;
 
     }
 

@@ -1,8 +1,7 @@
 package de.hsbo.copernicus.datasource;
 
-import java.awt.geom.Rectangle2D;
+import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
-import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -31,7 +30,7 @@ public class DataSourceFacade {
 
         AdapterFactory factory;
         factory = AdapterFactory.getInstance();
-        Adapter source = factory.getAdapter(AdapterFactory.AWS);
+        Adapter source = factory.getAdapter(AdapterFactory.CODEDE);
 
         source.setQuery(startDate, endDate, bbox, additionalParameter, result);
         /**

@@ -5,7 +5,7 @@
  */
 package de.hsbo.copernicus.datasource;
 
-import java.awt.geom.Rectangle2D;
+import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
@@ -31,10 +31,10 @@ public abstract class Adapter implements Runnable {
      * Method to query for datasats in a specific area, period of time, sensor
      * TODO: bbox should be a Geometry Object with spatial reference system
      *
-     * @param startDate
-     * @param endDate
-     * @param bbox
-     * @param additionalParameter
+     * @param startDate Calendar object of type GregorianCalendar
+     * @param endDate   Calendar object of type GregorianCalendar
+     * @param bbox Recangle of type math.geom2d.polygon.Rectangle2D;
+     * @param additionalParameter HashMap for optional parameter
      * @return
      * @throws java.io.IOException
      */

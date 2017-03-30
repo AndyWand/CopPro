@@ -1,6 +1,6 @@
 package de.hsbo.copernicus.datasource;
 
-import java.awt.geom.Rectangle2D;
+import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
@@ -12,8 +12,10 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.net.*;
 import java.io.*;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import math.geom2d.Point2D;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -115,14 +117,15 @@ public class AdapterCodede extends Adapter {
         }
         startDateString = "startDate:" + startYear + "-" + startMonth + "-" + startDay + "T" + startHour + ":" + startMinute + ":" + startSecond + "Z";
         endDateString = "endDate:" + endYear + "-" + endMonth + "-" + endDay + "T" + endHour + ":" + endMinute + ":" + endSecond + "Z";
-        bboxString = bbox.toString();
 
-        final String QueryString = baseURL + httpAccept + "&" + parentIdentifier + "&" + startDateString + "&"
+        
+
+        final String queryString = baseURL + httpAccept + "&" + parentIdentifier + "&" + startDateString + "&"
                 + endDateString + "&" + bboxString + "&" + cloudCover + "&" + startRecord + "&" + maximumRecords;
 
         // request CODE-DE via Opensearch
         URL request;
-        request = new URL(QueryString);
+        request = new URL(queryString);
 
         URLConnection yc = request.openConnection();
         BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
@@ -188,7 +191,6 @@ public class AdapterCodede extends Adapter {
             // TODO Auto-generated catch block
         }
         return flag;
-
     }
 
     @Override
@@ -220,4 +222,35 @@ public class AdapterCodede extends Adapter {
         return this.result;
     }
 
+    /**
+     * Converts the X/Y coordinates ths bbox to a string for the query
+     *
+     * @param bbox
+     * @return
+     */
+    private String bbox2String(Rectangle2D bbox) {
+        // if bbox is a point it'll be converted to just X/Y
+        // a polygon is convertes to a series of points
+        if (!bbox.vertex(0).contains(bbox.vertex(2))) {
+            String bboxString = "POLYGON((";
+            Collection<Point2D> c = bbox.vertices();
+            int i = 0;
+            for (Point2D p : c) {
+                if (i > 0) {
+                    bboxString += "," + p.x() + " " + p.y();
+                    i++;
+                } else {
+                    bboxString += p.x() + " " + p.y();
+                    i++;
+                }
+            }
+            bboxString += "))";
+            return bboxString;
+        } else {
+            Point2D point = bbox.vertex(0);
+            String bboxString = point.x() + " " + point.y();
+            return bboxString;
+        }
+
+    }
 }
