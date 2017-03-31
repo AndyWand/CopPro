@@ -30,8 +30,8 @@ public class DataSourceFacade {
 
         AdapterFactory factory;
         factory = AdapterFactory.getInstance();
-        Adapter source = factory.getAdapter(AdapterFactory.CODEDE);
-
+        Adapter source = factory.getAdapter(AdapterFactory.SCIHUB);
+        
         source.setQuery(startDate, endDate, bbox, additionalParameter, result);
         /**
          * instanciate a new Thread and use this to execute the source-Adapter

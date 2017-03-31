@@ -10,13 +10,15 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * This class is to download resources asychronoulsy
- * it provides mathods to set resources which will be loaded on run 
- * and offers the results at getResult
+ * This class is to download resources asychronoulsy it provides mathods to set
+ * resources which will be loaded on run and offers the results at getResult
+ *
  * @author Andreas Wandert
  */
 public class Downloader implements Runnable {
@@ -24,6 +26,7 @@ public class Downloader implements Runnable {
     private static final int BUFFER_SIZE = 4096;
     private String resource;
     private File result;
+    private String md5Credential;
 
     @Override
     public void run() {
@@ -36,17 +39,34 @@ public class Downloader implements Runnable {
 
     public File download(String recource, String saveDir) throws IOException {
 
+        //Reformat the recource string to an ascii encoded string
+        System.out.println("Request for download is:" + recource);
+        URL url = new URL(recource);
+        URI uri = null;
+        try {
+            uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(Downloader.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        recource = uri.toASCIIString();
+
+        System.out.println("Request for download is:" + recource);
+
         File resultFile = null;
         final String defaultsaveDir = "./";
         if (saveDir.isEmpty()) {
             saveDir = defaultsaveDir;
         }
 
-        URL url = new URL(recource);
+        // URL url = new URL(recource);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-        int responseCode = httpConn.getResponseCode();
-        httpConn.addRequestProperty("Authorization", "Basic YW53YTpuZGw/M2hzNyElQVQ");
+        
+        //Add login credentials as md5 encoded string to the HTTP header
+        httpConn.setRequestProperty("Authorization", this.md5Credential);
+        //httpConn.addRequestProperty("Authorization", "Basic YW53YTpuZGw/M2hzNyElQVQ");
 
+        int responseCode = httpConn.getResponseCode();
+        
         // always check HTTP response code first
         if (responseCode == HttpURLConnection.HTTP_OK) {
             String fileName = "";
@@ -101,15 +121,17 @@ public class Downloader implements Runnable {
     /**
      *
      * @param resource
+     * @param md5Credential user credential in a md5encoded string
      */
-    public void setResource(String resource) {
+    public void setResource(String resource, String md5Credential) {
         this.resource = resource;
+        this.md5Credential = "Basic " + md5Credential;
     }
 
     /**
      *
      *
-     * @return 
+     * @return
      */
     public File getResult() {
         return this.result;

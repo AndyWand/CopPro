@@ -2,7 +2,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays
+import java.util.Arrays;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
@@ -34,7 +34,7 @@ public class DOMTest {
         //Read the document
         Element root = doc.getDocumentElement();
         NodeList nL = root.getElementsByTagName("m:properties");
-        ArrayList<String[]> productIds = new ArrayList<String[]>();
+        ArrayList<String[]> productIds = new ArrayList<>();
         for (int i = 0; i < nL.getLength(); i++) {
             Node n = nL.item(i);
             if (n.getNodeType() == Node.ELEMENT_NODE) {

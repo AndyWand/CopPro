@@ -97,7 +97,7 @@ public class AdapterAws extends Adapter {
             queryString += '/' + additionalParameter.get("band") + ".jp2";
         }
         // return the baseURL to query
-        System.out.println(queryString);
+        //System.out.println(queryString);
         return queryString;
 
     }
@@ -161,7 +161,7 @@ public class AdapterAws extends Adapter {
                 outputStream.write(buffer, 0, bytesRead);
             }
 
-            result = new File(outputFile);
+            //result = new File(outputFile);
             outputStream.close();
             inputStream.close();
 
@@ -186,7 +186,7 @@ public class AdapterAws extends Adapter {
             flag = Ip.isReachable(10);
         } catch (IOException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+
         }
         return flag;
 

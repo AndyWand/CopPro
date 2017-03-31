@@ -23,7 +23,7 @@ public abstract class Adapter implements Runnable {
      */
     private static Adapter instance;
     private static String baseURL;
-    public static final String name = "";
+    public static final String NAME = "";
     public static File result;
 
     /**
