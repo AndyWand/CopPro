@@ -9,6 +9,9 @@ import com.bc.ceres.core.ProgressMonitor;
 import java.io.File;
 import org.esa.snap.core.datamodel.Product;
 import org.esa.snap.ndvi.NdviOp;
+import org.esa.snap.core.dataio.ProductIO;
+import org.esa.snap.core.dataio.ProductReader;
+import org.esa.snap.core.dataio.rgb.ImageProductReader;
 
 /**
  *
@@ -17,7 +20,7 @@ import org.esa.snap.ndvi.NdviOp;
  */
 public class NDVI implements RasterProcessor {
 
-    public static final String name = "ndvi";
+    public static final String NAME = "ndvi";
 
     public NDVI() {
 
@@ -26,6 +29,7 @@ public class NDVI implements RasterProcessor {
     public void compute(Product input, File output) {
         NdviOp n = new NdviOp();
         //TODO Read file into a Product Reader
+         
         //pick proper bands from the product 
         //pass this to computeTile
 

@@ -124,7 +124,7 @@ public class AdapterAws extends Adapter {
         URL url = new URL(fileURL);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         int responseCode = httpConn.getResponseCode();
-                
+
         // always check HTTP response code first
         if (responseCode == HttpURLConnection.HTTP_OK) {
             String fileName = "";
@@ -262,6 +262,12 @@ public class AdapterAws extends Adapter {
         this.bbox = bbox;
         this.additionalParameter = additionalParameter;
         this.result = file;
+    }
+
+    public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, File file) {
+        HashMap<String,String> additionalParameter = new HashMap<>();
+        setQuery(startDate, endDate, bbox, additionalParameter, file);
+        return;
     }
 
     @Override
