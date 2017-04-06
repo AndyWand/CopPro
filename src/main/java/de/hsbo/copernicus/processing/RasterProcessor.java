@@ -14,5 +14,5 @@ import org.esa.snap.core.datamodel.Product;
  */
 public interface RasterProcessor extends Processor {
 
-    public void compute(Product input, File output);
+    public void compute(Product input, Product output);
 }

@@ -1,8 +1,7 @@
 package de.hsbo.copernicus.processing;
 
 import de.hsbo.copernicus.datasource.*;
-import de.hsbo.copernicus.processing.*;
-import java.awt.geom.Rectangle2D;
+import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
@@ -13,10 +12,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.media.jai.RenderedOp;
 import javax.media.jai.operator.FileLoadDescriptor;
-import org.esa.snap.core.dataio.ProductIO;
+import org.esa.snap.core.dataio.*;
 import org.esa.snap.core.dataio.rgb.ImageProductReaderPlugIn;
 import org.esa.snap.core.datamodel.Product;
 import org.esa.snap.core.util.io.FileUtils;
+import org.esa.s2tbx.dataio.jp2.*;
+import org.openide.util.Exceptions;
 
 /**
  * This class manages the communication to the portals and the processors. It's
@@ -38,6 +39,10 @@ public class Core {
     //processors includes a set of available Processors idantified by an integer >1
     //"0" is reserved for "preprocessing only"
     private HashMap<Integer, Processor> processors;
+    //ProductIOManager
+    ProductIOPlugInManager manager;
+    private static final String DEFAULT_PATH = "./result";
+    private static final String DEFAULT_OUTPUT_Format = "fiff";
 
     /**
      *
@@ -50,6 +55,7 @@ public class Core {
         Processor ndvi = new NDVI();
         processors.put(0, pre);
         processors.put(1, ndvi);
+        manager = ProductIOPlugInManager.getInstance();
     }
 
     /**
@@ -61,6 +67,7 @@ public class Core {
     private Core(HashMap customProcessors) {
         initProcessors();
         processors = customProcessors;
+        manager = ProductIOPlugInManager.getInstance();
     }
 
     /**
@@ -105,6 +112,7 @@ public class Core {
     ) {
         DataSourceFacade facade = new DataSourceFacade();
         File input = facade.request(startDate, endDate, bbox, additionalParameter);
+        Product outputProduct = null;
         File output = new File("");
         Processor pre = processors.get(0);
 
@@ -117,13 +125,13 @@ public class Core {
             //call the compute method to start computation of an output file
             Processor pro = processors.get(type);
             //perform preprocessing
-           //not yet supported pre.compute(this.file2pdm(input), output);
-            pro.compute(this.file2pdm(output), output);
+            //not yet supported pre.compute(this.read(input), output);
+            pro.compute(this.read(output), outputProduct);
 
-            return output;
+            return write(outputProduct);
         } else {
             //perform preprocessing only
-            //not yet supported pre.compute(this.file2pdm(input), output);
+            //not yet supported pre.compute(this.read(input), output);
             return output;
         }
 
@@ -207,8 +215,11 @@ public class Core {
      * @param file
      * @return
      */
-    public Product file2pdm(File file) {
+    public Product read(File file) {
         Product product = null;
+        JP2ProductReaderPlugin readerPlugIn = new JP2ProductReaderPlugin();
+        manager.addReaderPlugIn(readerPlugIn);
+
         try {
             product = ProductIO.readProduct(file);
         } catch (IOException ex) {
@@ -218,8 +229,18 @@ public class Core {
         return product;
     }
 
+    public File write(Product product) {
+        try {
+            ProductIO.writeProduct(product, this.DEFAULT_PATH, this.DEFAULT_OUTPUT_Format);
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        File file = new File(this.DEFAULT_PATH + "." + this.DEFAULT_OUTPUT_Format);
+        return file;
+    }
+
     /**
-     * This method is to load an received file i to SNAPs PDM
+     * This method is to load a received file i to SNAPs PDM
      *
      * @param file
      * @return

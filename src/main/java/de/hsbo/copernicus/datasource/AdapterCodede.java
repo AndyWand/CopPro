@@ -1,6 +1,6 @@
 package de.hsbo.copernicus.datasource;
 
-import java.awt.geom.Rectangle2D;
+import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
@@ -12,8 +12,10 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.net.*;
 import java.io.*;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import math.geom2d.Point2D;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -33,9 +35,9 @@ public class AdapterCodede extends Adapter {
     /**
      * Attributes predifined by the abstract class Adapter
      */
-    private static String baseURL = "https://code-de.org/opensearch/request/?";
+    private static final String BASEURL = "https://code-de.org/opensearch/request/?";
     private static Adapter instance;
-    public static final String name = "codede";
+    public static final String NAME = "codede";
 
     private Calendar start, end;
     private Rectangle2D bbox;
@@ -115,14 +117,13 @@ public class AdapterCodede extends Adapter {
         }
         startDateString = "startDate:" + startYear + "-" + startMonth + "-" + startDay + "T" + startHour + ":" + startMinute + ":" + startSecond + "Z";
         endDateString = "endDate:" + endYear + "-" + endMonth + "-" + endDay + "T" + endHour + ":" + endMinute + ":" + endSecond + "Z";
-        bboxString = bbox.toString();
 
-        final String QueryString = baseURL + httpAccept + "&" + parentIdentifier + "&" + startDateString + "&"
+        final String queryString = BASEURL + httpAccept + "&" + parentIdentifier + "&" + startDateString + "&"
                 + endDateString + "&" + bboxString + "&" + cloudCover + "&" + startRecord + "&" + maximumRecords;
 
         // request CODE-DE via Opensearch
         URL request;
-        request = new URL(QueryString);
+        request = new URL(queryString);
 
         URLConnection yc = request.openConnection();
         BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
@@ -132,7 +133,6 @@ public class AdapterCodede extends Adapter {
             System.out.println(inputLine);
         }
         in.close();
-
         handleXML(inputLine);
 
         return "";
@@ -147,7 +147,6 @@ public class AdapterCodede extends Adapter {
             builder = builderFactory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
             // TODO Auto-generated catch block
-
         }
         Document xmlDoc = null;
         try {
@@ -182,13 +181,12 @@ public class AdapterCodede extends Adapter {
         InetAddress Ip;
         boolean flag = false;
         try {
-            Ip = InetAddress.getByName(baseURL);
+            Ip = InetAddress.getByName(BASEURL);
             flag = Ip.isReachable(10);
         } catch (IOException e) {
             // TODO Auto-generated catch block
         }
         return flag;
-
     }
 
     @Override

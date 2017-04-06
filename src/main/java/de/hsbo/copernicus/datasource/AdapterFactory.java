@@ -20,7 +20,7 @@ public class AdapterFactory {
     private static AdapterFactory instance;
     public static final int AWS = 1;
     public static final int CODEDE = 2;
-    public static final int SCIHUB = 1;
+    public static final int SCIHUB = 3;
 
     private AdapterFactory() {
         
