@@ -11,7 +11,7 @@ import org.esa.snap.core.datamodel.Product;
  *
  * @author Andreas
  */
-public class Corrections implements RasterProcessor {
+public class Corrections implements RasterProcessorInterface {
 
     public Corrections(){
         

@@ -30,13 +30,13 @@ import org.xml.sax.SAXException;
  *
  * @author Andreas
  */
-public class AdapterCodede extends Adapter {
+public class AdapterCodede extends AbstractAdapter {
 
     /**
-     * Attributes predifined by the abstract class Adapter
+     * Attributes predifined by the abstract class AbstractAdapter
      */
     private static final String BASEURL = "https://code-de.org/opensearch/request/?";
-    private static Adapter instance;
+    private static AbstractAdapter instance;
     public static final String NAME = "codede";
 
     private Calendar start, end;
@@ -65,7 +65,7 @@ public class AdapterCodede extends Adapter {
      *
      * @return
      */
-    public static Adapter getInstance() {
+    public static AbstractAdapter getInstance() {
         if (AdapterCodede.instance == null) {
             AdapterCodede.instance = new AdapterCodede();
             return instance;

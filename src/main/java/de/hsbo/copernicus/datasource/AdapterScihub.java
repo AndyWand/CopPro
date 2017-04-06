@@ -27,14 +27,14 @@ import org.xml.sax.SAXException;
  *
  * @author Andreas Wandert
  */
-public class AdapterScihub extends Adapter {
+public class AdapterScihub extends AbstractAdapter {
 
     // This URL is for ODATA-Hub
     private static final String BASEURL = "https://scihub.copernicus.eu/dhus/search";
     //For the Open Search API use "https://scihub.copernicus.eu/apihub/" instead
     private static final String ODATAURL = "https://scihub.copernicus.eu/dhus/odata/v1";
     public static final String NAME = "scihub";
-    private static Adapter instance;
+    private static AbstractAdapter instance;
     private Calendar start, end;
     private Rectangle2D bbox;
     private HashMap additionalParameter;
@@ -54,7 +54,7 @@ public class AdapterScihub extends Adapter {
     private AdapterScihub() {
     }
 
-    public static Adapter getInstance() {
+    public static AbstractAdapter getInstance() {
         if (AdapterScihub.instance == null) {
             instance = new AdapterScihub();
             return instance;

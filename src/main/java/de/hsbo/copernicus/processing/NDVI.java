@@ -23,7 +23,7 @@ import org.esa.snap.core.dataio.ProductWriter;
  * @author Andreas This clase is to compute the NDVI out of two input rastert
  * only
  */
-public class NDVI implements RasterProcessor {
+public class NDVI implements RasterProcessorInterface {
 
     public static final String NAME = "ndvi";
 

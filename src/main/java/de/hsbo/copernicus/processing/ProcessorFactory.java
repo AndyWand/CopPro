@@ -12,10 +12,10 @@ package de.hsbo.copernicus.processing;
 @Deprecated
 public class ProcessorFactory {
 
-    public Processor makeRasterProcessor(String type) {
+    public ProcessorInterface makeRasterProcessor(String type) {
 
         if (type == "ndvi") {
-            Processor a = new NDVI();
+            ProcessorInterface a = new NDVI();
 
             return a;
         } else {

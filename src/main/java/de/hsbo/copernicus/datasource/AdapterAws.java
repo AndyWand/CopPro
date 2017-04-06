@@ -21,19 +21,24 @@ import java.util.logging.Logger;
  *
  * @author Andreas Wandert
  */
-public class AdapterAws extends Adapter {
+public class AdapterAws extends AbstractAdapter {
 
-    public static final String name = "aws";
+    public static final String NAME = "aws";
     private static AdapterAws instance;
     private static String baseURL = "http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/tiles";
     private Calendar start, end;
     private Rectangle2D bbox;
     private HashMap additionalParameter;
     private File result;
+    private static final int BUFFER_SIZE = 4096; //Buffer for download
 
     private AdapterAws() {
     }
 
+    /**
+     *
+     * @return
+     */
     public static AdapterAws getInstance() {
         if (AdapterAws.instance == null) {
             AdapterAws.instance = new AdapterAws();
@@ -41,8 +46,6 @@ public class AdapterAws extends Adapter {
         }
         return AdapterAws.instance;
     }
-
-    private static final int BUFFER_SIZE = 4096; //Buffer for download
 
     @Override
     public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
@@ -133,13 +136,13 @@ public class AdapterAws extends Adapter {
             int contentLength = httpConn.getContentLength();
 
             if (disposition != null) {
-                // extracts file name from header field
+                // extracts file NAME from header field
                 int index = disposition.indexOf("filename=");
                 if (index > 0) {
                     fileName = disposition.substring(index + 10, disposition.length() - 1);
                 }
             } else {
-                // extracts file name from baseURL
+                // extracts file NAME from baseURL
                 fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1, fileURL.length());
             }
 
@@ -201,6 +204,7 @@ public class AdapterAws extends Adapter {
      * @return String-array format is: [0]: UTM-Zone [1]: latitude band [2]:
      * square
      *
+     * uses an instance of class CoordinateConverion to cnovert decimal degree into UTM MGRS
      * licensing this method is using code from
      * https://www.ibm.com/developerworks/apps/download/index.jsp?contentid=250050&filename=j-coordconvert.zip&method=http&locale=
      */
@@ -264,8 +268,15 @@ public class AdapterAws extends Adapter {
         this.result = file;
     }
 
+    /**
+     *
+     * @param startDate
+     * @param endDate
+     * @param bbox
+     * @param file
+     */
     public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, File file) {
-        HashMap<String,String> additionalParameter = new HashMap<>();
+        HashMap<String, String> additionalParameter = new HashMap<>();
         setQuery(startDate, endDate, bbox, additionalParameter, file);
         return;
     }

@@ -11,10 +11,13 @@ import org.esa.snap.core.datamodel.Product;
  *
  * @author Andreas
  */
-public interface Processor {
+public interface RasterProcessorInterface extends ProcessorInterface {
 
-    final static String NAME = "";
-
+    /**
+     *
+     * @param input
+     * @param output
+     */
+    @Override
     public void compute(Product input, Product output);
-
 }

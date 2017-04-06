@@ -13,7 +13,7 @@ import org.esa.snap.core.datamodel.Product;
  *
  * @author Andreas
  */
-public interface VectorProcessor extends Processor {
+public interface VectorProcessorInterface extends ProcessorInterface {
 
     @Override
     public default void compute(Product input, Product output) {

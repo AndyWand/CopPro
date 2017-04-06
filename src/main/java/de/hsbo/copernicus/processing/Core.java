@@ -33,12 +33,12 @@ public class Core {
 
     /**
      * processors includes a set of available Processors idantified by an
-     * integer >1 "0" is reserved for "No Processor"
+     * integer >1 "0" is reserved for "No ProcessorInterface"
      */
     private static Core instance;
     //processors includes a set of available Processors idantified by an integer >1
     //"0" is reserved for "preprocessing only"
-    private HashMap<Integer, Processor> processors;
+    private HashMap<String, ProcessorInterface> processors;
     //ProductIOManager
     ProductIOPlugInManager manager;
     private static final String DEFAULT_PATH = "./result";
@@ -51,10 +51,10 @@ public class Core {
      */
     private Core() {
         initProcessors();
-        Processor pre = new Corrections();
-        Processor ndvi = new NDVI();
-        processors.put(0, pre);
-        processors.put(1, ndvi);
+        ProcessorInterface pre = new Corrections();
+        ProcessorInterface ndvi = new NDVI();
+        processors.put("correction", pre);
+        processors.put("ndvi", ndvi);
         manager = ProductIOPlugInManager.getInstance();
     }
 
@@ -108,33 +108,34 @@ public class Core {
      * @param type
      * @return an processed image if type is not zero else it´s a raw L1-raster
      */
-    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap additionalParameter, int type
+    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap additionalParameter, String type
     ) {
         DataSourceFacade facade = new DataSourceFacade();
-        File input = facade.request(startDate, endDate, bbox, additionalParameter);
+        Product input = facade.request(startDate, endDate, bbox, additionalParameter);
         Product outputProduct = null;
         File output = new File("");
-        Processor pre = processors.get(0);
+        ProcessorInterface pre = processors.get(0);
 
-        // if type is -1 return DataProduct without any processing
-        if (type == -1) {
-            return input;
-        } else if (type > 0) {
-            //instanciate an input and an output file
+        switch (type) {
+            // if type is "none" return DataProduct without any processing
+            case "none":
+                return write(input);
+            case "correction":
+                //perform preprocessing only
+                //not yet supported pre.compute(this.file2pdm(input), output);
+                return output;
+            default: {
+                //instanciate an input and an output file
 
-            //call the compute method to start computation of an output file
-            Processor pro = processors.get(type);
-            //perform preprocessing
-            //not yet supported pre.compute(this.read(input), output);
-            pro.compute(this.read(output), outputProduct);
+                //call the compute method to start computation of an output file
+                ProcessorInterface pro = processors.get(type);
+                //perform preprocessing
+                //not yet supported pre.compute(this.read(input), output);
+                pro.compute(this.read(output), outputProduct);
 
-            return write(outputProduct);
-        } else {
-            //perform preprocessing only
-            //not yet supported pre.compute(this.read(input), output);
-            return output;
+                return write(outputProduct);
+            }
         }
-
     }
 
     /**
@@ -144,10 +145,9 @@ public class Core {
      * @param newProcessor
      * @return
      */
-    public int addProcessor(Processor newProcessor) {
-        int newIndex = processors.size();
-        processors.put(newIndex, newProcessor);
-        return newIndex;
+    public void addProcessor(ProcessorInterface newProcessor) {
+        processors.put(newProcessor.NAME, newProcessor);
+        return;
     }
 
     /**
@@ -156,7 +156,7 @@ public class Core {
      * @param newProcessors
      * @return
      */
-    public Set<Integer> addProcessors(HashMap newProcessors) {
+    public Set<String> addProcessors(HashMap newProcessors) {
         processors.putAll(newProcessors);
         return processors.keySet();
     }
@@ -168,14 +168,13 @@ public class Core {
      * @param newProcessors
      * @return
      */
-    public Set<Integer> addProcessors(Processor[] newProcessors) {
-        Set<Integer> newIndexes = new HashSet();
-        for (Processor p : newProcessors) {
-            int newIndex = processors.size();
-            processors.put(newIndex, p);
-            newIndexes.add(newIndex);
+    public Set<String> addProcessors(ProcessorInterface[] newProcessors) {
+        Set<String> names = new HashSet();
+        for (ProcessorInterface p : newProcessors) {
+            processors.put(p.NAME, p);
+            names.add(p.NAME);
         }
-        return newIndexes;
+        return names;
     }
 
     /**
@@ -191,13 +190,13 @@ public class Core {
      * @param index
      * @return
      */
-    public Processor getProcessor(int index) {
+    public ProcessorInterface getProcessor(int index) {
         return processors.get(index);
     }
 
     /**
-     * *
-     * public int getIndex (Processor p){ return processors. }
+     * **
+     * public int getIndex (ProcessorInterface p){ return processors. }
      *
      */
     public void test() {

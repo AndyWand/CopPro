@@ -16,7 +16,7 @@ import java.util.HashMap;
  */
 public class AdapterFactory {
 
-    private HashMap<Integer, Adapter> adapters= new HashMap<>();
+    private HashMap<Integer, AbstractAdapter> adapters= new HashMap<>();
     private static AdapterFactory instance;
     public static final int AWS = 1;
     public static final int CODEDE = 2;
@@ -41,7 +41,7 @@ public class AdapterFactory {
      * @return 
      * @returns an adapter which is available online
      */
-    public Adapter getAdapter() {
+    public AbstractAdapter getAdapter() {
 
         if (AdapterCodede.getInstance().isOnline()) {
             return AdapterCodede.getInstance();
@@ -63,9 +63,9 @@ public class AdapterFactory {
      * @param type: name of the expected adapter as an integer constant
      * @return an instance of an adapter of the specified type
      */
-    public Adapter getAdapter(int type) {
+    public AbstractAdapter getAdapter(int type) {
         if (adapters.isEmpty() || !adapters.containsKey(type)) {
-            Adapter adapter = null;
+            AbstractAdapter adapter = null;
             switch (type) {
                 case 1:
                     adapter = AdapterAws.getInstance();

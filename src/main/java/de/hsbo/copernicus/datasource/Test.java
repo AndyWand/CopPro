@@ -40,7 +40,7 @@ public class Test {
         //System.out.println(file.getPath());
         
         Core c = Core.getInstance();        
-        File result = c.request(start, end, bbox, h, 0);
+        File result = c.request(start, end, bbox, h, "correction");
         
        // System.out.println(result.getPath());
          //

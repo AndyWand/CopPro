@@ -1,11 +1,17 @@
 package de.hsbo.copernicus.datasource;
 
+import de.hsbo.copernicus.processing.Core;
 import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.esa.s2tbx.dataio.jp2.JP2ProductReaderPlugin;
+import org.esa.snap.core.dataio.ProductIO;
+import org.esa.snap.core.dataio.ProductIOPlugInManager;
+import org.esa.snap.core.datamodel.Product;
 
 /**
  *
@@ -15,8 +21,15 @@ import java.util.logging.Logger;
  */
 public class DataSourceFacade {
 
-    private File result;
+    private File resultFile;
+    private Product resultProduct;
+    private final ProductIOPlugInManager manager;
 
+    public DataSourceFacade() {
+        manager = ProductIOPlugInManager.getInstance();
+    }
+    
+    
     /**
      *
      * @param startDate
@@ -25,14 +38,13 @@ public class DataSourceFacade {
      * @param additionalParameter
      * @return
      */
-    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox,
-            HashMap<String, String> additionalParameter) {
+    public Product request(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter) {
 
         AdapterFactory factory;
         factory = AdapterFactory.getInstance();
-        Adapter source = factory.getAdapter(AdapterFactory.SCIHUB);
-        
-        source.setQuery(startDate, endDate, bbox, additionalParameter, result);
+        AbstractAdapter source = factory.getAdapter(AdapterFactory.SCIHUB);
+
+        source.setQuery(startDate, endDate, bbox, additionalParameter, resultFile);
         /**
          * instanciate a new Thread and use this to execute the source-Adapter
          */
@@ -43,9 +55,28 @@ public class DataSourceFacade {
         } catch (InterruptedException ex) {
             Logger.getLogger(DataSourceFacade.class.getName()).log(Level.SEVERE, null, ex);
         }
-        result = source.getResult();
+        resultFile = source.getResult();
+        resultProduct = read(resultFile);
 
-        return result;
+        return resultProduct;
     }
 
+    /**
+     *
+     * @param file
+     * @return
+     */
+    public Product read(File file) {
+        Product product = null;
+        JP2ProductReaderPlugin readerPlugIn = new JP2ProductReaderPlugin();
+        manager.addReaderPlugIn(readerPlugIn);
+
+        try {
+            product = ProductIO.readProduct(file);
+        } catch (IOException ex) {
+            Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return product;
+    }
 }

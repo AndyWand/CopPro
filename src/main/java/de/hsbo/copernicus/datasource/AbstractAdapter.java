@@ -15,13 +15,13 @@ import java.util.HashMap;
  *
  * @author Andreas
  */
-public abstract class Adapter implements Runnable {
+public abstract class AbstractAdapter implements Runnable {
 
     /**
      * instance is an object of class DataSource to ensure that there is only
      * one instance of each adapter existing
      */
-    private static Adapter instance;
+    private static AbstractAdapter instance;
     private static String baseURL;
     public static final String NAME = "";
     public static File result;
