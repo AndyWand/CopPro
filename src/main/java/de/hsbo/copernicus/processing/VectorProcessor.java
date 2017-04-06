@@ -16,7 +16,7 @@ import org.esa.snap.core.datamodel.Product;
 public interface VectorProcessor extends Processor {
 
     @Override
-    public default void compute(Product input, File output) {
+    public default void compute(Product input, Product output) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

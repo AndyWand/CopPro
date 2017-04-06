@@ -5,7 +5,6 @@
  */
 package de.hsbo.copernicus.processing;
 
-import java.io.File;
 import org.esa.snap.core.datamodel.Product;
 
 /**
@@ -14,8 +13,8 @@ import org.esa.snap.core.datamodel.Product;
  */
 public interface Processor {
 
-    final static String name = "";
+    final static String NAME = "";
 
-    public void compute(Product input, File output);
+    public void compute(Product input, Product output);
 
 }
