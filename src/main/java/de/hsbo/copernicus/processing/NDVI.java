@@ -5,13 +5,18 @@
  */
 package de.hsbo.copernicus.processing;
 
+import com.bc.ceres.core.NullProgressMonitor;
 import com.bc.ceres.core.ProgressMonitor;
 import java.io.File;
+import java.io.Writer;
 import org.esa.snap.core.datamodel.Product;
 import org.esa.snap.ndvi.NdviOp;
 import org.esa.snap.core.dataio.ProductIO;
 import org.esa.snap.core.dataio.ProductReader;
 import org.esa.snap.core.dataio.rgb.ImageProductReader;
+import org.esa.s2tbx.dataio.jp2.JP2ProductReaderPlugin;
+import org.esa.s2tbx.dataio.jp2.*;
+import org.esa.snap.core.dataio.ProductWriter;
 
 /**
  *
@@ -26,15 +31,25 @@ public class NDVI implements RasterProcessor {
 
     }
 
-    public void compute(Product input, File output) {
-        NdviOp n = new NdviOp();
-        //TODO Read file into a Product Reader
-         
-        //pick proper bands from the product 
-        //pass this to computeTile
+    public void compute(Product input, Product output) {
+        NdviOp ndvi = new NdviOp();
+        //TODO Read file into a Processor
+        ndvi.setSourceProduct(input);
+        //pick proper bands from the product        
+        Product target = new Product("ndvi", "indexRaster");
+        ndvi.setTargetProduct(target);
+        ProgressMonitor monitor = new NullProgressMonitor() {
+            @Override
+            public void done() {
+                Product result = ndvi.getTargetProduct();
+            }
+        };
+        ndvi.doExecute(monitor);
 
-        // n.computeTile(targetBand, targetTile, ProgressMonitor.NULL);
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //pass this to computeTile
+        //write the target product into a file object
+        output = target;
+
     }
 
 }
