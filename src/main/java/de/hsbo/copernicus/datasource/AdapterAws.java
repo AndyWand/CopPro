@@ -21,11 +21,13 @@ import java.util.logging.Logger;
  *
  * @author Andreas Wandert
  */
-public class AdapterAws extends AbstractAdapter {
+class AdapterAws extends AbstractAdapter {
 
     public static final String NAME = "aws";
     private static AdapterAws instance;
-    private static String baseURL = "http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/tiles";
+    private static String baseURL = "http://sentinel-s2-l1c.s3.amazonaws.com/tiles";
+    //Website:"http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/tiles";
+
     private Calendar start, end;
     private Rectangle2D bbox;
     private HashMap additionalParameter;
@@ -72,22 +74,25 @@ public class AdapterAws extends AbstractAdapter {
         queryString += '/' + square;
 
         // perform test of 'year'
-        // year should be a 4 digit number greater or equal then 2015
-        int year = startDate.get(Calendar.YEAR);  // year the data was collected e.g. 2014
-        int month = startDate.get(Calendar.MONTH);  // mouth of year e.g. 5
+        // year should be a 4 digit number greater or equal then 2015      
         int day = startDate.get(Calendar.DAY_OF_MONTH); // day of month e.g. 
+        int month = startDate.get(Calendar.MONTH);  // mouth of year e.g. 5
+        int year = startDate.get(Calendar.YEAR);  // year the data was collected e.g. 2014
 
         if (year >= 2015 && String.valueOf(year).length() == 4) {
             queryString += '/' + String.valueOf(year);
         }
 
         // perform test of 'month'
-        if (String.valueOf(month).length() <= 2 && String.valueOf(month).length() >= 1 && month >= 1 && month <= 12) {
+        if (String.valueOf(month).length() <= 2 && String.valueOf(month).length() >= 0 && month >= 0 && month <= 12) {
+            if (month == 0) {
+                month = 12;
+            }
             queryString += '/' + String.valueOf(month);
-        }
+        } 
 
         // perform test of 'day'
-        if (String.valueOf(day).length() >= 1 && String.valueOf(month).length() <= 2 && day >= 1 && day <= 31) {
+        if (String.valueOf(day).length() >= 1 && String.valueOf(day).length() <= 2 && day >= 1 && day <= 31) {
             queryString += '/' + String.valueOf(day);
         }
         // perform test of 'sequence'
@@ -99,7 +104,7 @@ public class AdapterAws extends AbstractAdapter {
         if (additionalParameter.containsKey("band")) {
             queryString += '/' + additionalParameter.get("band") + ".jp2";
         }
-        // return the baseURL to query
+        // return the query
         //System.out.println(queryString);
         return queryString;
 
@@ -119,7 +124,7 @@ public class AdapterAws extends AbstractAdapter {
     public File download(String fileURL, String saveDir) throws IOException {
 
         File result = null;
-        final String defaultsaveDir = "./";
+        final String defaultsaveDir = ".\\";
         if (saveDir.isEmpty()) {
             saveDir = defaultsaveDir;
         }
@@ -149,7 +154,7 @@ public class AdapterAws extends AbstractAdapter {
             System.out.println("Content-Type = " + contentType);
             System.out.println("Content-Disposition = " + disposition);
             System.out.println("Content-Length = " + contentLength);
-            System.out.println("fileName = " + fileName);
+            System.out.println("fileName = " + fileName);           
 
             // opens input stream from the HTTP connection
             InputStream inputStream = httpConn.getInputStream();
@@ -204,12 +209,12 @@ public class AdapterAws extends AbstractAdapter {
      * @return String-array format is: [0]: UTM-Zone [1]: latitude band [2]:
      * square
      *
-     * uses an instance of class CoordinateConverion to cnovert decimal degree into UTM MGRS
-     * licensing this method is using code from
+     * uses an instance of class CoordinateConverion to cnovert decimal degree
+     * into UTM MGRS licensing this method is using code from
      * https://www.ibm.com/developerworks/apps/download/index.jsp?contentid=250050&filename=j-coordconvert.zip&method=http&locale=
      */
     private String[] transform(double lat, double lon) {
-        CoordinateConversion converter = new CoordinateConversion();
+        CoordinateConverter converter = new CoordinateConverter();
         String pointInMGRS = converter.latLon2MGRUTM(lat, lon);
 
         //Target format is: UTM-Code, Latitude-Band, Square
@@ -224,38 +229,7 @@ public class AdapterAws extends AbstractAdapter {
         result[1] = pointInMGRS.substring(2, 3);
         //forth two digits for square
         result[2] = pointInMGRS.substring(3, 5);
-        /**
-         * //result-array for result coordinates in mgrs as UTM-code,
-         * latitude-band square String[] result = {""};
-         * CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:4326");
-         * CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:4647");
-         * Coordinate coordinate = new Coordinate(x, y);
-         *
-         * MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS,
-         * false); JTS.transform(coordinate, coordinate, transform);
-         *
-         * System.out.print(coordinate.toString());
-         *
-         * /**
-         * This section is to transform coordinates from UTM to MGRS (military
-         * Grid)
-         *
-         * // create a HashMap for all possible values of the first character
-         * in // square string final HashMap<Integer, char[]> planSquares = new
-         * HashMap<Integer, char[]>(); char line1[] = {'A', 'B', 'C', 'D', 'E',
-         * 'F', 'G', 'H'}; char line2[] = {'J', 'K', 'L', 'M', 'N', 'P', 'Q',
-         * 'R'}; char line3[] = {'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-         * planSquares.put(2, line2); planSquares.put(1, line1);
-         * planSquares.put(0, line3);
-         *
-         * // perform test of 'square' // test length if (square.length() == 2)
-         * { // test if first digit is valid for (char c :
-         * planSquares.get(square.charAt(0) % 3)) { if (c == square.charAt(0)) {
-         *
-         * // test if second digit is valid } }
-         *
-         * }
-         */
+
         return result;
     }
 
@@ -278,14 +252,16 @@ public class AdapterAws extends AbstractAdapter {
     public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, File file) {
         HashMap<String, String> additionalParameter = new HashMap<>();
         setQuery(startDate, endDate, bbox, additionalParameter, file);
-        return;
     }
 
     @Override
     public void run() {
         try {
             String query = this.query(this.start, this.end, this.bbox, this.additionalParameter);
-            this.result = this.download(query, "");
+            query = "http://sentinel-s2-l1c.s3.amazonaws.com/tiles/46/J/DN/2015/8/23/0/B01.jp2";
+            //System.out.println(query);
+            this.result = this.download(query,"" );
+            this.result = new File ("C:\\Users\\Andreas\\Downloads\\S2A_MSIL1C_20170403T104021_N0204_R008_T32ULC_20170403T104138.SAFE");
         } catch (IOException ex) {
             Logger.getLogger(AdapterAws.class.getName()).log(Level.SEVERE, null, ex);
         }

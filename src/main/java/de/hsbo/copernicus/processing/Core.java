@@ -1,5 +1,8 @@
 package de.hsbo.copernicus.processing;
 
+import de.hsbo.copernicus.processing.Processors.correction.Corrections;
+import de.hsbo.copernicus.processing.processors.*;
+
 import de.hsbo.copernicus.datasource.*;
 import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
@@ -71,7 +74,8 @@ public class Core {
     }
 
     /**
-     * Methods to ensure that Core is a Singelton
+     * Methods to ensure that Core is a Singelton Creates an instance of class
+     * core including a default set of processors
      *
      * @return Core instance
      */
@@ -85,6 +89,8 @@ public class Core {
     }
 
     /**
+     * Creates an instance of class core by using a HashMap of customProcessors
+     * to make them available for future processing
      *
      * @param customProcessors
      * @return
@@ -143,11 +149,9 @@ public class Core {
      * processor
      *
      * @param newProcessor
-     * @return
      */
     public void addProcessor(ProcessorInterface newProcessor) {
         processors.put(newProcessor.NAME, newProcessor);
-        return;
     }
 
     /**
@@ -187,11 +191,11 @@ public class Core {
 
     /**
      *
-     * @param index
+     * @param type
      * @return
      */
-    public ProcessorInterface getProcessor(int index) {
-        return processors.get(index);
+    public ProcessorInterface getProcessor(String type) {
+        return processors.get(type);
     }
 
     /**
@@ -202,11 +206,11 @@ public class Core {
     public void test() {
         String file = "deinPath";
         try {
-            Product readProduct = ProductIO.readProduct(file);
-//            readProduct.g
+            Product readProduct = ProductIO.readProduct(file);            
         } catch (IOException ex) {
             Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
     }
 
     /**

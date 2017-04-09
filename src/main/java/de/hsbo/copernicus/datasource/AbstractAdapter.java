@@ -15,7 +15,7 @@ import java.util.HashMap;
  *
  * @author Andreas
  */
-public abstract class AbstractAdapter implements Runnable {
+abstract class AbstractAdapter implements Runnable {
 
     /**
      * instance is an object of class DataSource to ensure that there is only
@@ -32,7 +32,7 @@ public abstract class AbstractAdapter implements Runnable {
      * TODO: bbox should be a Geometry Object with spatial reference system
      *
      * @param startDate Calendar object of type GregorianCalendar
-     * @param endDate   Calendar object of type GregorianCalendar
+     * @param endDate Calendar object of type GregorianCalendar
      * @param bbox Recangle of type math.geom2d.polygon.Rectangle2D;
      * @param additionalParameter HashMap for optional parameter
      * @return
@@ -76,6 +76,5 @@ public abstract class AbstractAdapter implements Runnable {
      * @return file: file object passed in setQuery
      */
     public abstract File getResult();
-
 
 }

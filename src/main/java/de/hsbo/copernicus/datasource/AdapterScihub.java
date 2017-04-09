@@ -27,7 +27,7 @@ import org.xml.sax.SAXException;
  *
  * @author Andreas Wandert
  */
-public class AdapterScihub extends AbstractAdapter {
+class AdapterScihub extends AbstractAdapter {
 
     // This URL is for ODATA-Hub
     private static final String BASEURL = "https://scihub.copernicus.eu/dhus/search";
@@ -271,7 +271,7 @@ public class AdapterScihub extends AbstractAdapter {
                     if (daysDiff < 0) {
                         dateQuery += "[NOW-" + daysDiff + 1 + "DAYS TO NOW]";
 
-                    }else{
+                    } else {
                         //Hours
                     }
                 }

@@ -14,16 +14,16 @@ import java.util.HashMap;
  *
  * @author Andreas Wandert
  */
-public class AdapterFactory {
+class AdapterFactory {
 
-    private HashMap<Integer, AbstractAdapter> adapters= new HashMap<>();
+    private HashMap<Integer, AbstractAdapter> adapters = new HashMap<>();
     private static AdapterFactory instance;
     public static final int AWS = 1;
     public static final int CODEDE = 2;
     public static final int SCIHUB = 3;
 
     private AdapterFactory() {
-        
+
     }
 
     public static AdapterFactory getInstance() {
@@ -38,7 +38,7 @@ public class AdapterFactory {
      * This is the default method to request an adapter the order is: CODE_DE,
      * AWS, SciHub
      *
-     * @return 
+     * @return
      * @returns an adapter which is available online
      */
     public AbstractAdapter getAdapter() {
@@ -77,7 +77,7 @@ public class AdapterFactory {
                     adapter = AdapterScihub.getInstance();
                     break;
             }
-            adapters.put(type, adapter);            
+            adapters.put(type, adapter);
             return adapter;
 
         } else {

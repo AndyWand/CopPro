@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.hsbo.copernicus.processing;
+package de.hsbo.copernicus.processing.processors;
 
 import org.esa.snap.core.datamodel.Product;
 
@@ -11,13 +11,10 @@ import org.esa.snap.core.datamodel.Product;
  *
  * @author Andreas
  */
-public interface RasterProcessorInterface extends ProcessorInterface {
+public interface ProcessorInterface {
 
-    /**
-     *
-     * @param input
-     * @param output
-     */
-    @Override
+    final static String NAME = "";
+
     public void compute(Product input, Product output);
+
 }

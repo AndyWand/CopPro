@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  *
  * @author Andreas Wandert
  */
-public class Downloader implements Runnable {
+class Downloader implements Runnable {
 
     private static final int BUFFER_SIZE = 4096;
     private String resource;
@@ -60,13 +60,13 @@ public class Downloader implements Runnable {
 
         // URL url = new URL(recource);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-        
+
         //Add login credentials as md5 encoded string to the HTTP header
         httpConn.setRequestProperty("Authorization", this.md5Credential);
         //httpConn.addRequestProperty("Authorization", "Basic YW53YTpuZGw/M2hzNyElQVQ");
 
         int responseCode = httpConn.getResponseCode();
-        
+
         // always check HTTP response code first
         if (responseCode == HttpURLConnection.HTTP_OK) {
             String fileName = "";

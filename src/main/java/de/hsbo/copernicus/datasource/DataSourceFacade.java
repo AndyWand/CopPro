@@ -8,6 +8,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.esa.s2tbx.dataio.jp2.JP2ProductReader;
 import org.esa.s2tbx.dataio.jp2.JP2ProductReaderPlugin;
 import org.esa.snap.core.dataio.ProductIO;
 import org.esa.snap.core.dataio.ProductIOPlugInManager;
@@ -27,8 +28,7 @@ public class DataSourceFacade {
 
     public DataSourceFacade() {
         manager = ProductIOPlugInManager.getInstance();
-    }
-    
+    }    
     
     /**
      *
@@ -40,9 +40,10 @@ public class DataSourceFacade {
      */
     public Product request(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter) {
 
+        
         AdapterFactory factory;
         factory = AdapterFactory.getInstance();
-        AbstractAdapter source = factory.getAdapter(AdapterFactory.SCIHUB);
+        AbstractAdapter source = factory.getAdapter(AdapterFactory.AWS);
 
         source.setQuery(startDate, endDate, bbox, additionalParameter, resultFile);
         /**
@@ -54,24 +55,28 @@ public class DataSourceFacade {
             t.join();
         } catch (InterruptedException ex) {
             Logger.getLogger(DataSourceFacade.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }        
         resultFile = source.getResult();
+        System.out.println("Filelocation is: "+resultFile.getAbsolutePath());
         resultProduct = read(resultFile);
 
         return resultProduct;
     }
 
     /**
-     *
+     * Reads a file of format JP2 into SNAPs product data model 
+     * 
      * @param file
      * @return
+     * 
+     * this is for internal us only
      */
-    public Product read(File file) {
+    private Product read(File file) {
         Product product = null;
         JP2ProductReaderPlugin readerPlugIn = new JP2ProductReaderPlugin();
         manager.addReaderPlugIn(readerPlugIn);
 
-        try {
+        try {            
             product = ProductIO.readProduct(file);
         } catch (IOException ex) {
             Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);

@@ -12,10 +12,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.net.*;
 import java.io.*;
-import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import math.geom2d.Point2D;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -30,7 +28,7 @@ import org.xml.sax.SAXException;
  *
  * @author Andreas
  */
-public class AdapterCodede extends AbstractAdapter {
+class AdapterCodede extends AbstractAdapter {
 
     /**
      * Attributes predifined by the abstract class AbstractAdapter
