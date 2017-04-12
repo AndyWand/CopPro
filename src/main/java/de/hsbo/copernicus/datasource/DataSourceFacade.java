@@ -45,7 +45,7 @@ public class DataSourceFacade {
         factory = AdapterFactory.getInstance();
         AbstractAdapter source = factory.getAdapter(AdapterFactory.AWS);
 
-        source.setQuery(startDate, endDate, bbox, additionalParameter, resultFile);
+        source.setQuery(startDate, endDate, bbox, additionalParameter);
         /**
          * instanciate a new Thread and use this to execute the source-Adapter
          */

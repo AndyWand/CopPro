@@ -16,8 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * This class is to download resources asychronoulsy it provides mathods to set
- * resources which will be loaded on run and offers the results at getResult
+ * This class is to download resources asychronoulsy it provides mathods to set resources which will
+ * be loaded on run and offers the results at getResult
  *
  * @author Andreas Wandert
  */
@@ -26,7 +26,7 @@ class Downloader implements Runnable {
     private static final int BUFFER_SIZE = 4096;
     private String resource;
     private File result;
-    private String md5Credential;
+    private String credential;
 
     @Override
     public void run() {
@@ -40,7 +40,6 @@ class Downloader implements Runnable {
     public File download(String recource, String saveDir) throws IOException {
 
         //Reformat the recource string to an ascii encoded string
-        System.out.println("Request for download is:" + recource);
         URL url = new URL(recource);
         URI uri = null;
         try {
@@ -50,53 +49,62 @@ class Downloader implements Runnable {
         }
         recource = uri.toASCIIString();
 
-        System.out.println("Request for download is:" + recource);
+        System.out.println("Request for download is: " + recource);
 
         File resultFile = null;
-        final String defaultsaveDir = "./";
+        final String defaultsaveDir = ".";
         if (saveDir.isEmpty()) {
             saveDir = defaultsaveDir;
         }
-
-        // URL url = new URL(recource);
+        String basicAuth = "Basic " + new String(java.util.Base64.getEncoder().encode(this.credential.getBytes()));
+        //System.out.println("Authentication: " + basicAuth);
+        url = new URL(recource);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
 
         //Add login credentials as md5 encoded string to the HTTP header
-        httpConn.setRequestProperty("Authorization", this.md5Credential);
+        httpConn.setRequestProperty("Authorization", basicAuth);
         //httpConn.addRequestProperty("Authorization", "Basic YW53YTpuZGw/M2hzNyElQVQ");
-
+        httpConn.connect();
         int responseCode = httpConn.getResponseCode();
 
         // always check HTTP response code first
         if (responseCode == HttpURLConnection.HTTP_OK) {
-            String fileName = "";
+            String fileName = "temp";
+            String fileFormat = "xml";
             String disposition = httpConn.getHeaderField("Content-Disposition");
             String contentType = httpConn.getContentType();
             int contentLength = httpConn.getContentLength();
-
-            if (disposition != null) {
-                // extracts file name from header field
-                int index = disposition.indexOf("filename=");
-                if (index > 0) {
-                    fileName = disposition.substring(index + 10, disposition.length() - 1);
-                }
-            } else {
-                // extracts file name from baseURL
-                fileName = recource.substring(recource.lastIndexOf("/") + 1, recource.length());
-            }
+            String lengthInBytes = httpConn.getHeaderField("content-Length");
+           // long length = Long.parseLong(lengthInBytes);
 
             System.out.println("Content-Type = " + contentType);
             System.out.println("Content-Disposition = " + disposition);
             System.out.println("Content-Length = " + contentLength);
-            System.out.println("fileName = " + fileName);
+            System.out.println("fileName = " + fileName + "." + fileFormat);
+            System.out.println("length in Bytes: " + lengthInBytes);
+           // System.out.println("Content-Length = " + length);
 
+            if (disposition != null) {
+                //cut File format  
+                // extracts file name from header field
+                int index = disposition.indexOf("filename=");
+                String wrongFileName = "";
+                if (index > 0) {
+                    wrongFileName = disposition.substring(index);
+                }
+                System.out.println(wrongFileName);
+                String[] fileFormatArray = wrongFileName.split("\\.");
+
+                fileFormat = fileFormatArray[fileFormatArray.length - 1].substring(0, fileFormatArray[fileFormatArray.length - 1].length() - 1);
+                System.out.println(fileFormat);
+            }
             // opens input stream from the HTTP connection
             InputStream inputStream = httpConn.getInputStream();
-            String outputFile = saveDir + File.separator + fileName;
+            String outputFile = saveDir + File.separator + fileName + "." + fileFormat;
 
             // opens an output stream to save into file
             FileOutputStream outputStream = new FileOutputStream(outputFile);
-
+            resultFile = new File(outputFile);
             int bytesRead = -1;
             byte[] buffer = new byte[BUFFER_SIZE];
             while ((bytesRead = inputStream.read(buffer)) != -1) {
@@ -110,22 +118,23 @@ class Downloader implements Runnable {
             System.out.println("File downloaded");
         } else {
             System.out.println("No file to download. Server replied HTTP code: " + responseCode);
+            throw new IOException("Server replied HTTP code: " + responseCode);
         }
         httpConn.disconnect();
 
         String[] urlsegments = recource.split("/");
-        resultFile = new File(saveDir + "/" + urlsegments[urlsegments.length - 1]);
+        //  resultFile = new File(saveDir + "/" + urlsegments[urlsegments.length - 1]);       
         return resultFile;
     }
 
     /**
      *
      * @param resource
-     * @param md5Credential user credential in a md5encoded string
+     * @param md5Credential user credential formated like <username>:<password>
      */
-    public void setResource(String resource, String md5Credential) {
+    public void setResource(String resource, String credential) {
         this.resource = resource;
-        this.md5Credential = "Basic " + md5Credential;
+        this.credential = credential;
     }
 
     /**
@@ -134,6 +143,7 @@ class Downloader implements Runnable {
      * @return
      */
     public File getResult() {
+        this.result = new File(result.getAbsoluteFile().toString().replace("\\.", ""));
         return this.result;
     }
 }

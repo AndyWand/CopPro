@@ -39,10 +39,13 @@ public class Sen2CorAdapter implements Runnable {
     //corent progress of process in % [0,100]
     private double progress;
     private File resultProduct = null;
+    private static final String progressFilter = "Progress[%]";
 
     //Parts of filename to replace and replacer
     private final String stringToInsert = "MSIL2A";
     private final String stringToReplace = "MSIL1C";
+
+    private static final String terminatonFilter = "Progress[%]: 100";
 
     //optionanl parameters
     //--sc_only         Performs only the scene classification at 60 or 20m
@@ -57,8 +60,7 @@ public class Sen2CorAdapter implements Runnable {
      * @param file is the fileName to the .SAFE - file of a data product
      * @param resolution GSD meter [10,20,60]
      * @param gippSource
-     * @param scOnly Performs only the scene classification at 60 or 20m
-     * resolution
+     * @param scOnly Performs only the scene classification at 60 or 20m resolution
      */
     public Sen2CorAdapter(File file, String resolution, String gippSource, Boolean scOnly) {
         initResolutions();
@@ -160,14 +162,14 @@ public class Sen2CorAdapter implements Runnable {
         Process tr = Runtime.getRuntime().exec(cmd);
         BufferedReader stdOut = new BufferedReader(new InputStreamReader(tr.getInputStream()));
         String s;
-        while ((s = stdOut.readLine()) != null && !s.contains("Progress[%]: 100")) {
+        while ((s = stdOut.readLine()) != null && !s.contains(terminatonFilter)) {
             //set the current progress
-            if (s.contains("Progress[%]")) {
+            if (s.contains(progressFilter)) {
                 String substring = s.split(":")[1];
                 progress = Double.parseDouble(substring);
             }
             System.out.println(s);
-            if (s.contains("Progress[%]: 100")) {
+            if (s.contains(terminatonFilter)) {
                 progress = 100;
                 System.out.println("Process terminated successfully!");
                 return 0;
@@ -187,9 +189,11 @@ public class Sen2CorAdapter implements Runnable {
                 Exceptions.printStackTrace(ex);
             }
         } else {
+            if (System.getProperty("os.name").contains("Linux")) {
+                throw new UnsupportedOperationException("OS is not supported yet!");
+            }
             throw new UnsupportedOperationException("OS is not supported yet!");
         }
-
     }
 
     /**
@@ -202,7 +206,8 @@ public class Sen2CorAdapter implements Runnable {
     }
 
     /**
-     * flag to determine weather prosess is done
+     * retuns flag to determine weather prosess is done
+     *
      * @return
      */
     public Boolean isDone() {
@@ -211,8 +216,8 @@ public class Sen2CorAdapter implements Runnable {
 
     /**
      *
-     * @return file pointing to result product of the processing before call
-     * this make sure the process has terminated sccessfully by call <code>isDone()<code>
+     * @return file pointing to result product of the processing before call this make sure the
+     * process has terminated sccessfully by call <code>isDone()<code>
      */
     public File getResult() {
         return resultProduct;

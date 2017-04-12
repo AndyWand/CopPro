@@ -15,7 +15,7 @@ import java.util.HashMap;
  *
  * @author Andreas
  */
-abstract class AbstractAdapter implements Runnable {
+public abstract class AbstractAdapter implements Runnable {
 
     /**
      * instance is an object of class DataSource to ensure that there is only
@@ -60,10 +60,10 @@ abstract class AbstractAdapter implements Runnable {
      * @param endDate
      * @param bbox
      * @param additionalParameter
-     * @param file
+     * 
      */
     public abstract void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox,
-            HashMap<String, String> additionalParameter, File file);
+            HashMap<String, String> additionalParameter);
 
     /**
      * Starts an execution

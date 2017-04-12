@@ -20,8 +20,8 @@ import org.xml.sax.SAXException;
 /**
  * This adapter is to request and download Sentinel-2 Products from Code-DE
  * <link>https://code-de.org/</link>
- * It requests products by using OpenSearch and downloads it as a file Parallel
- * downloads are limited to 2 or 4
+ * It requests products by using OpenSearch and downloads it as a file Parallel downloads are
+ * limited to 2 or 4
  * <p>
  * Mandatory parameters: startDate, endDate bbox optional as String:String in
  * additionalParameter-HashMap cloudCover startRecord maximumRecords
@@ -58,8 +58,7 @@ class AdapterCodede extends AbstractAdapter {
     }
 
     /**
-     * indirect constructor to ensure that there is only one instance of this
-     * class (Singleton)
+     * indirect constructor to ensure that there is only one instance of this class (Singleton)
      *
      * @return
      */
@@ -193,12 +192,11 @@ class AdapterCodede extends AbstractAdapter {
     }
 
     @Override
-    public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter, File file) {
+    public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter) {
         this.start = startDate;
         this.end = endDate;
         this.bbox = bbox;
         this.additionalParameter = additionalParameter;
-        this.result = file;
     }
 
     @Override

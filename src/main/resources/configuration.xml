@@ -11,9 +11,18 @@ and open the template in the editor.
         <productdatastorage>C:\Users\Andreas\Documents\NetBeansProjects\Copernicus\data</productdatastorage>
     </global>
     <datasources>
-        <aws></aws>
-        <scihub></scihub>
-        <codede></codede>
+        <aws>
+            <baseurl></baseurl>
+        </aws>
+        <scihub>
+            <baseurl>https://scihub.copernicus.eu/dhus/search</baseurl>
+            <odataurl>https://scihub.copernicus.eu/dhus/odata/v1</odataurl>
+            <credentials>anwa:ndl?3hs7!%AT</credentials>
+        </scihub>
+        <codede>
+            <baseurl></baseurl>
+            <credentials>AnWa:2ndl?3hs7!%#A8T</credentials>
+        </codede>
     </datasources>
     <processing>
         <sen2cor>

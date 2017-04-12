@@ -89,7 +89,7 @@ class AdapterAws extends AbstractAdapter {
                 month = 12;
             }
             queryString += '/' + String.valueOf(month);
-        } 
+        }
 
         // perform test of 'day'
         if (String.valueOf(day).length() >= 1 && String.valueOf(day).length() <= 2 && day >= 1 && day <= 31) {
@@ -154,7 +154,7 @@ class AdapterAws extends AbstractAdapter {
             System.out.println("Content-Type = " + contentType);
             System.out.println("Content-Disposition = " + disposition);
             System.out.println("Content-Length = " + contentLength);
-            System.out.println("fileName = " + fileName);           
+            System.out.println("fileName = " + fileName);
 
             // opens input stream from the HTTP connection
             InputStream inputStream = httpConn.getInputStream();
@@ -234,12 +234,11 @@ class AdapterAws extends AbstractAdapter {
     }
 
     @Override
-    public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter, File file) {
+    public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap<String, String> additionalParameter) {
         this.start = startDate;
         this.end = endDate;
         this.bbox = bbox;
         this.additionalParameter = additionalParameter;
-        this.result = file;
     }
 
     /**
@@ -251,17 +250,19 @@ class AdapterAws extends AbstractAdapter {
      */
     public void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox, File file) {
         HashMap<String, String> additionalParameter = new HashMap<>();
-        setQuery(startDate, endDate, bbox, additionalParameter, file);
+        setQuery(startDate, endDate, bbox, additionalParameter);
     }
 
     @Override
     public void run() {
         try {
             String query = this.query(this.start, this.end, this.bbox, this.additionalParameter);
-            query = "http://sentinel-s2-l1c.s3.amazonaws.com/tiles/46/J/DN/2015/8/23/0/B01.jp2";
+            // sample
+            // query = "http://sentinel-s2-l1c.s3.amazonaws.com/tiles/46/J/DN/2015/8/23/0/B01.jp2";
             //System.out.println(query);
-            this.result = this.download(query,"" );
-            this.result = new File ("C:\\Users\\Andreas\\Downloads\\S2A_MSIL1C_20170403T104021_N0204_R008_T32ULC_20170403T104138.SAFE");
+            this.result = this.download(query, "");
+            // sample file 
+            //this.result = new File("C:\\Users\\Andreas\\Downloads\\S2A_MSIL1C_20170403T104021_N0204_R008_T32ULC_20170403T104138.SAFE");
         } catch (IOException ex) {
             Logger.getLogger(AdapterAws.class.getName()).log(Level.SEVERE, null, ex);
         }
