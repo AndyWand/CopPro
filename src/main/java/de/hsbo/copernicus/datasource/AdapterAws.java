@@ -24,8 +24,8 @@ import java.util.logging.Logger;
 class AdapterAws extends AbstractAdapter {
 
     public static final String NAME = "aws";
-    private static AdapterAws instance;
-    private static String baseURL = "http://sentinel-s2-l1c.s3.amazonaws.com/tiles";
+    private static AbstractAdapter instance;
+    private static final String BASEURL = "http://sentinel-s2-l1c.s3.amazonaws.com/tiles";
     //Website:"http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/tiles";
 
     private Calendar start, end;
@@ -41,18 +41,17 @@ class AdapterAws extends AbstractAdapter {
      *
      * @return
      */
-    public static AdapterAws getInstance() {
+    public static AbstractAdapter getInstance() {
         if (AdapterAws.instance == null) {
             AdapterAws.instance = new AdapterAws();
             return AdapterAws.instance;
         }
         return AdapterAws.instance;
     }
-
-    @Override
-    public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
+   
+    private String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) {
-        String queryString = baseURL;
+        String queryString = BASEURL;
         // the following parameters need to be calulated by thransforming the
         // input parameters to UTM mGrid        
 
@@ -120,8 +119,8 @@ class AdapterAws extends AbstractAdapter {
      * @return
      * @throws IOException
      */
-    @Override
-    public File download(String fileURL, String saveDir) throws IOException {
+  
+    private File download(String fileURL, String saveDir) throws IOException {
 
         File result = null;
         final String defaultsaveDir = ".\\";

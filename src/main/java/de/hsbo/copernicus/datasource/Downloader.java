@@ -12,8 +12,14 @@ import java.net.URL;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.openide.util.Exceptions;
 
 /**
  * This class is to download resources asychronoulsy it provides mathods to set resources which will
@@ -37,10 +43,13 @@ class Downloader implements Runnable {
         }
     }
 
-    public File download(String recource, String saveDir) throws IOException {
+    private File download(String recource, String saveDir) throws IOException {
+        String SEPERATOR = "\\?";
 
         //Reformat the recource string to an ascii encoded string
+        String[] splitedRecource = recource.split(SEPERATOR);
         URL url = new URL(recource);
+        //new URL(splitedRecource[0] + "?" + URLEncoder.encode(splitedRecource[1], "UTF-8"));
         URI uri = null;
         try {
             uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
@@ -48,17 +57,16 @@ class Downloader implements Runnable {
             Logger.getLogger(Downloader.class.getName()).log(Level.SEVERE, null, ex);
         }
         recource = uri.toASCIIString();
-
-        System.out.println("Request for download is: " + recource);
-
+        System.out.println("Downloader:encoded URL: " + recource);
         File resultFile = null;
-        final String defaultsaveDir = ".";
+        final String defaultSaveDir = ".";
         if (saveDir.isEmpty()) {
-            saveDir = defaultsaveDir;
+            saveDir = defaultSaveDir;
         }
         String basicAuth = "Basic " + new String(java.util.Base64.getEncoder().encode(this.credential.getBytes()));
         //System.out.println("Authentication: " + basicAuth);
-        url = new URL(recource);
+        //url = new URL(recource);
+        System.out.println("Downloader:URL: " + url);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
 
         //Add login credentials as md5 encoded string to the HTTP header
@@ -75,14 +83,14 @@ class Downloader implements Runnable {
             String contentType = httpConn.getContentType();
             int contentLength = httpConn.getContentLength();
             String lengthInBytes = httpConn.getHeaderField("content-Length");
-           // long length = Long.parseLong(lengthInBytes);
+            // long length = Long.parseLong(lengthInBytes);
 
             System.out.println("Content-Type = " + contentType);
             System.out.println("Content-Disposition = " + disposition);
             System.out.println("Content-Length = " + contentLength);
             System.out.println("fileName = " + fileName + "." + fileFormat);
             System.out.println("length in Bytes: " + lengthInBytes);
-           // System.out.println("Content-Length = " + length);
+            // System.out.println("Content-Length = " + length);
 
             if (disposition != null) {
                 //cut File format  
@@ -125,6 +133,23 @@ class Downloader implements Runnable {
         String[] urlsegments = recource.split("/");
         //  resultFile = new File(saveDir + "/" + urlsegments[urlsegments.length - 1]);       
         return resultFile;
+    }
+
+    public HashMap<String, String> encode(HashMap<String, String> parameterValues) {
+        HashMap<String, String> resultMap = new HashMap<>();
+        Object[] keys = parameterValues.keySet().toArray();
+        Object[] values = parameterValues.values().toArray();
+        for (int i = 0; i < keys.length; i++) {
+            String key = (String) keys[i];
+            String value = (String) values[i];
+            try {
+                resultMap.put(key, URLEncoder.encode(value, "UTF-8"));
+            } catch (UnsupportedEncodingException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+
+        }
+        return resultMap;
     }
 
     /**

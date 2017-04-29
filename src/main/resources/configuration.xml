@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
-
-
 <configurations>
     <global>
         <productdatastorage>C:\Users\Andreas\Documents\NetBeansProjects\Copernicus\data</productdatastorage>
     </global>
     <datasources>
+        <general>
+            <decisionorder>codede,aws,scihub</decisionorder>
+        </general>
         <aws>
-            <baseurl></baseurl>
+            <baseurl>http://sentinel-s2-l1c.s3.amazonaws.com/tiles</baseurl>
         </aws>
         <scihub>
             <baseurl>https://scihub.copernicus.eu/dhus/search</baseurl>
@@ -20,14 +16,12 @@ and open the template in the editor.
             <credentials>anwa:ndl?3hs7!%AT</credentials>
         </scihub>
         <codede>
-            <baseurl></baseurl>
+            <baseurl>https://code-de.org/opensearch/request/?</baseurl>
             <credentials>AnWa:2ndl?3hs7!%#A8T</credentials>
         </codede>
     </datasources>
     <processing>
-        <sen2cor>
-            
-        </sen2cor>
+        <sen2cor></sen2cor>
     </processing>
     <delivery></delivery>
 </configurations>

@@ -43,7 +43,7 @@ class AdapterFactory {
      */
     public AbstractAdapter getAdapter() {
 
-        if (AdapterCodede.getInstance().isOnline()) {
+        if (AdapterCodede.getInstance().isOnline()) {            
             return AdapterCodede.getInstance();
         } else {
             if (AdapterAws.getInstance().isOnline()) {
@@ -58,7 +58,7 @@ class AdapterFactory {
     }
 
     /**
-     * This mathod is to requste an adapter for a specific portal
+     * This method is to request an adapter for a specific portal
      *
      * @param type: name of the expected adapter as an integer constant
      * @return an instance of an adapter of the specified type

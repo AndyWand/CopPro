@@ -3,9 +3,7 @@ package de.hsbo.copernicus.datasource;
 import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -31,7 +29,7 @@ import org.xml.sax.SAXException;
  *
  * @author Andreas Wandert
  */
-public class AdapterScihub extends AbstractAdapter {
+class AdapterScihub extends AbstractAdapter {
 
     // This URL is for ODATA-Hub
     private static final String BASEURL = "https://scihub.copernicus.eu/dhus/search";
@@ -43,6 +41,11 @@ public class AdapterScihub extends AbstractAdapter {
     private static final String TAG_VALUE_NAME = "str";
     private static final String TAG_VALUE_ENTRY = "entry";
     public static final String NAME = "scihub";
+    public static final String PLATFORM_S1 = "Sentinel-1";
+    public static final String PLATFORM_S2 = "Sentinel-2";
+    public static final String PLATFORM_S3 = "Sentinel-3";
+    public static final String PLATFORM_S4 = "Sentinel-4";
+    public static final String PLATFORM_S5 = "Sentinel-5";
     private static AbstractAdapter instance;
     private Calendar start, end;
     private Rectangle2D bbox;
@@ -50,11 +53,7 @@ public class AdapterScihub extends AbstractAdapter {
     private File result;
     private String credentials;
     private String platform = "Sentinel-2";
-    public static final String PLATFORM_S1 = "Sentinal-1";
-    public static final String PLATFORM_S2 = "Sentinal-2";
-    public static final String PLATFORM_S3 = "Sentinal-3";
-    public static final String PLATFORM_S4 = "Sentinal-4";
-    public static final String PLATFORM_S5 = "Sentinal-5";
+    
 
     /**
      * This is a List of available parameter to query a product: For geometric filtering
@@ -83,7 +82,6 @@ public class AdapterScihub extends AbstractAdapter {
      * @param additionalParameter bandnumber
      * @return
      */
-    @Override
     public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) {
 
@@ -93,12 +91,10 @@ public class AdapterScihub extends AbstractAdapter {
         String toRequest = BASEURL + "?q=" + buildQueryString(startDate, endDate, bbox);
         //send request to SciHub OpenSearch API
         try {
-            System.out.println("Requesting....:" + toRequest);
             xml = download(toRequest, "");
         } catch (IOException ex) {
             Logger.getLogger(AdapterScihub.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         //filter UUID and Product name from responded XML file
         HashMap<String, String> tagValues = null;
         try {
@@ -113,7 +109,7 @@ public class AdapterScihub extends AbstractAdapter {
  * Nodes('measurement')/
  * Nodes('s1a-iw1-slc-vv-20161207t013517-20161207t013550-014267-017143-001.tiff')
          */
-         System.out.println("Tag values are:" +tagValues.toString());
+        System.out.println("Tag values are:" + tagValues.toString());
         toRequest = ODATAURL + "/Products('" + tagValues.get(ATTRIBUTE_VALUE_ID) + "')/$value";//Nodes('" + tagValues.get(ATTRIBUTE_VALUE_IDENTIFIER) + "')/Nodes";
 
         //use this for an other request
@@ -362,7 +358,6 @@ public class AdapterScihub extends AbstractAdapter {
         return flag;
     }
 
-    @Override
     public synchronized File download(String fileURL, String saveDir) throws IOException {
         Downloader d = new Downloader();
         d.setResource(fileURL, credentials);

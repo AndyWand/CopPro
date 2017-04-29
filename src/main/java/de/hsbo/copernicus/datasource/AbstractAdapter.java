@@ -18,36 +18,15 @@ import java.util.HashMap;
 public abstract class AbstractAdapter implements Runnable {
 
     /**
-     * instance is an object of class DataSource to ensure that there is only
-     * one instance of each adapter existing
+     * instance is an object of class DataSource to ensure that there is only one instance of each
+     * adapter existing
      */
     private static AbstractAdapter instance;
-    private static String baseURL;
-    public static final String NAME = "";
-    public static File result;
-
-    /**
-     * *
-     * Method to query for datasats in a specific area, period of time, sensor
-     * TODO: bbox should be a Geometry Object with spatial reference system
-     *
-     * @param startDate Calendar object of type GregorianCalendar
-     * @param endDate Calendar object of type GregorianCalendar
-     * @param bbox Recangle of type math.geom2d.polygon.Rectangle2D;
-     * @param additionalParameter HashMap for optional parameter
-     * @return
-     * @throws java.io.IOException
-     */
-    protected abstract String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
-            HashMap<String, String> additionalParameter) throws IOException;
-
-    /**
-     * *
-     * Method to request the actual set of images
-     */
-    abstract File download(String fileURL, String saveDir) throws IOException;
-
-    /**
+    private static String baseURL; 
+    private static File result;    
+    
+    
+     /**
      * Method to test waether a Portal is available
      *
      * @return
@@ -60,7 +39,7 @@ public abstract class AbstractAdapter implements Runnable {
      * @param endDate
      * @param bbox
      * @param additionalParameter
-     * 
+     *
      */
     public abstract void setQuery(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter);

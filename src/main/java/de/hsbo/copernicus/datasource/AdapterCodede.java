@@ -12,8 +12,12 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.net.*;
 import java.io.*;
+import java.util.Collection;
+import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import math.geom2d.Point2D;
+import org.openide.util.Exceptions;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -33,28 +37,34 @@ class AdapterCodede extends AbstractAdapter {
     /**
      * Attributes predifined by the abstract class AbstractAdapter
      */
-    private static final String BASEURL = "https://code-de.org/opensearch/request/?";
+    private static final String BASEURL = "https://catalog.code-de.org/opensearch/request/?";
     private static AbstractAdapter instance;
     public static final String NAME = "codede";
+    public static final String SENSOR_TYPE_SOUND = "LIMB";
+    public static final String SENSOR_TYPE_RADAR = "RADAR";
+    public static final String SENSOR_TYPE_OPTICAL = "OPTICAL";
+    public static final String SENSOR_TYPE_ALTIMETRY = "ALTIMETRIC";
+    public static final String SENSOR_TYPE_ATHMOSPHERIC = "ATHMOSPHERIC";
 
+    private String sensorType = SENSOR_TYPE_OPTICAL;
     private Calendar start, end;
     private Rectangle2D bbox;
     private HashMap additionalParameter;
     private File result;
 
     /**
-     * Attributes nesseary to perform a proper query only in this adapter
+     * Attributes nessesary to perform a proper query only in this adapter
      */
-    private static String httpAccept = "'httpAccept': 'application/atom+xml'";
-    private static String parentIdentifier = "'parentIdentifier': 'EOP:CODE-DE:S2_MSI_L1'C";
-    private static String startDateString = "'startDate': '2017-02-09T10:09:55.000Z'";
-    private static String endDateString = "";
-    private static String bboxString = "'bbox': '7.1,51.3,7.4,51.4'";
+    private static final String httpAccept = "httpAccept=application/atom+xml";
+    private static final String parentIdentifier = "parentIdentifier=EOP:CODE-DE:S2_MSI_L1C";
+    private static String startDateString = "startDate=2017-02-09T10:09:55.000Z";
+    private static String endDateString = "endDate=2017-02-19T10:09:55.000Z";
+    private static String bboxString = "bbox=7.1,51.3,7.4,51.4";
 
     /**
      * Dafault Constuctor
      */
-    private AdapterCodede() {
+    private AdapterCodede() {       
     }
 
     /**
@@ -70,26 +80,127 @@ class AdapterCodede extends AbstractAdapter {
         return instance;
     }
 
+    public String buildQueryString(Calendar startDate, Calendar endDate, Rectangle2D bbox) {
+        String result = "";
+        //If there is a passed date, put it into the query string
+        if (!(startDate.compareTo(new GregorianCalendar(0, 0, 0)) == 0)) {
+            Integer startYear = startDate.get(Calendar.YEAR);
+            Integer startMonth = startDate.get(Calendar.MONTH);
+            Integer startDay = startDate.get(Calendar.DAY_OF_MONTH);
+            Integer startHour = startDate.get(Calendar.HOUR);
+            Integer startMinute = startDate.get(Calendar.MINUTE);
+            Integer startSecond = startDate.get(Calendar.SECOND);
+
+            Integer endYear = endDate.get(Calendar.YEAR);
+            Integer endMonth = endDate.get(Calendar.MONTH);
+            Integer endDay = endDate.get(Calendar.DAY_OF_MONTH);
+            Integer endHour = endDate.get(Calendar.HOUR);
+            Integer endMinute = endDate.get(Calendar.MINUTE);
+            Integer endSecond = endDate.get(Calendar.SECOND);
+
+            //startDate components as strings
+            String startMonthString = startMonth.toString();
+            String startDayString = startDay.toString();
+            String startHourString = startHour.toString();
+            String startMinuteString = startMinute.toString();
+            String startSecondString = startSecond.toString();
+
+            //components of endDate as strings
+            String endMonthString = endMonth.toString();
+            String endDayString = endDay.toString();
+            String endHourString = endHour.toString();
+            String endMinuteString = endMinute.toString();
+            String endSecondString = endSecond.toString();
+
+            /**
+             * reformat the Stringrepresentations of the date to fit them in to the template
+             * YY-MM-DDThh:mm:ss.sssZ
+             *
+             */
+            //refomat startDate components
+            if (startMonth < 10) {
+                startMonthString = "0" + startMonthString;
+            }
+            if (startDay < 10) {
+                startDayString = "0" + startDayString;
+            }
+            if (startHour == 0) {
+                startHourString = "00";
+            }
+            if (startMinute == 0) {
+                startMinuteString = "00";
+            }
+            if (startSecond == 0) {
+                startSecondString = "00.000";
+            }
+            //reformat endDate components
+            if (endMonth < 10) {
+                endMonthString = "0" + endMonthString;
+            }
+            if (endDay < 10) {
+                endDayString = "0" + endDayString;
+            }
+            if (endHour == 0) {
+                endHourString = "00";
+            }
+            if (endMinute == 0) {
+                endMinuteString = "00";
+            }
+            if (endSecond == 0) {
+                endSecondString = "00.000";
+            }
+            startDateString = "startDate=" + startYear + "-" + startMonthString + "-" + startDayString + "T"
+                    + startHourString + ":" + startMinuteString + ":" + startSecondString + "Z";
+            endDateString = "endDate=" + endYear + "-" + endMonthString + "-" + endDayString + "T"
+                    + endHourString + ":" + endMinuteString + ":" + endSecondString + "Z";
+
+            result = BASEURL + httpAccept + "&" + parentIdentifier + "&" + startDateString + "&"
+                    + endDateString;
+            return result;
+        } else {
+            //if there ia a passed bbox, calculate the center and put it into the query string
+            if (!bbox.isEmpty()) {
+                result = "bbox=" + bbox2String(bbox);
+            } else {
+            }
+            result += " AND " + "sensorType=" + this.sensorType;
+        }
+        return result;
+    }
+
+    private String bbox2String(Rectangle2D bbox) {
+        // if bbox is a point it'll be converted to just X/Y
+        // a polygon is convertes to a series of points
+        // "'bbox': '7.1,51.3,7.4,51.4'";
+        if (!bbox.vertex(0).contains(bbox.vertex(2))) {
+            String bboxString = "bbox=";
+            Collection<Point2D> c = bbox.vertices();
+            int i = 0;
+            for (Point2D p : c) {
+                if (i > 0) {
+                    bboxString += "," + p.x() + " " + p.y();
+                    i++;
+                } else {
+                    bboxString += p.x() + " " + p.y();
+                    i++;
+                }
+            }
+            bboxString += "'";
+            return bboxString;
+        } else {
+            Point2D point = bbox.vertex(0);
+            String bboxString = point.x() + ", " + point.y() + "'";
+            return bboxString;
+        }
+    }
+
     public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) throws IOException {
 
-        // transform input parameter into a valid request string
-        //extract data and time from calendar objects
-        final Integer startYear = startDate.get(Calendar.YEAR);
-        final Integer startMonth = startDate.get(Calendar.MONTH);
-        final Integer startDay = startDate.get(Calendar.DAY_OF_MONTH);
-        final Integer startHour = startDate.get(Calendar.HOUR);
-        final Integer startMinute = startDate.get(Calendar.MINUTE);
-        final Integer startSecond = startDate.get(Calendar.SECOND);
+        File xml = new File(".\\");
+        // transform input parameter into a valid request string        
 
-        final Integer endYear = endDate.get(Calendar.YEAR);
-        final Integer endMonth = endDate.get(Calendar.MONTH);
-        final Integer endDay = endDate.get(Calendar.DAY_OF_MONTH);
-        final Integer endHour = endDate.get(Calendar.HOUR);
-        final Integer endMinute = endDate.get(Calendar.MINUTE);
-        final Integer endSecond = endDate.get(Calendar.SECOND);
-
-        //define optinoal parameters
+        //define optional parameters
         final String startRecord;
         final String maximumRecords;
         final String cloudCover;
@@ -98,44 +209,43 @@ class AdapterCodede extends AbstractAdapter {
         if (additionalParameter.containsKey("startRecord")) {
             startRecord = "startRecord=" + additionalParameter.get("startRecord");
         } else {
-            startRecord = "startRecord=1";
+            // startRecord = "startRecord=1";
         }
         if (additionalParameter.containsKey("maximumRecords")) {
             maximumRecords = "maximumRecords=" + additionalParameter.get("maximumRecords");
         } else {
-            maximumRecords = "maximumRecords=10";
+            // maximumRecords = "maximumRecords=10";
         }
         //set optinal Parameter "cloudCover"
         if (additionalParameter.containsKey("cloudCover")) {
             //TODO: add addional verification, if "cloudCover" is well formed
             cloudCover = "cloudCover=" + additionalParameter.get("cloudCover");
         } else {
-            cloudCover = "cloudCover=[0,20]";
+            //  cloudCover = "cloudCover=[0,20]";
         }
-        startDateString = "startDate:" + startYear + "-" + startMonth + "-" + startDay + "T" + startHour + ":" + startMinute + ":" + startSecond + "Z";
-        endDateString = "endDate:" + endYear + "-" + endMonth + "-" + endDay + "T" + endHour + ":" + endMinute + ":" + endSecond + "Z";
 
-        final String queryString = BASEURL + httpAccept + "&" + parentIdentifier + "&" + startDateString + "&"
-                + endDateString + "&" + bboxString + "&" + cloudCover + "&" + startRecord + "&" + maximumRecords;
+        String queryString = buildQueryString(startDate, endDate, bbox);// + "&" + cloudCover + "&" + startRecord + "&" + maximumRecords;
 
         // request CODE-DE via Opensearch
-        URL request;
-        request = new URL(queryString);
-
-        URLConnection yc = request.openConnection();
-        BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
-        String inputLine;
-
-        while ((inputLine = in.readLine()) != null) {
-            System.out.println(inputLine);
-        }
-        in.close();
-        handleXML(inputLine);
+//        URL request;
+//        request = new URL(queryString);
+//
+//        URLConnection yc = request.openConnection();
+//        BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
+//        String inputLine;
+//
+//        while ((inputLine = in.readLine()) != null) {
+//            System.out.println(inputLine);
+//        }
+//        in.close();
+        System.out.println("QueryString:" + queryString);
+        xml = download(queryString, "");
+        handleXML(xml);
 
         return "";
     }
 
-    static String handleXML(String inputLine) {
+    static String handleXML(File inputLine) {
         // receive XML response and filter result
 
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
@@ -152,16 +262,16 @@ class AdapterCodede extends AbstractAdapter {
             // TODO Auto-generated catch block
         }
         xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}entry");
-        final String id = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}id").item(0).toString();
-        final String title = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}title").item(0).toString();
-        final String updated = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}updated").item(0).toString();
-        final String date = xmlDoc.getElementsByTagName("{http://purl.org/dc/elements/1.1/}date'").item(0).toString();
-        final String polygon = xmlDoc.getElementsByTagName("{http://www.georss.org/georss}polygon").item(0).toString();
-        final String published = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}published").item(0)
+        String id = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}id").item(0).toString();
+        String title = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}title").item(0).toString();
+        String updated = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}updated").item(0).toString();
+        String date = xmlDoc.getElementsByTagName("{http://purl.org/dc/elements/1.1/}date'").item(0).toString();
+        String polygon = xmlDoc.getElementsByTagName("{http://www.georss.org/georss}polygon").item(0).toString();
+        String published = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}published").item(0)
                 .toString();
-        final String identifier = xmlDoc.getElementsByTagName("{http://purl.org/dc/elements/1.1/}identifier").item(0)
+        String identifier = xmlDoc.getElementsByTagName("{http://purl.org/dc/elements/1.1/}identifier").item(0)
                 .toString();
-        final String link = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}link").item(0).toString();
+        String link = xmlDoc.getElementsByTagName("{http://www.w3.org/2005/Atom}link").item(0).toString();
 
         return link;
     }
@@ -186,9 +296,19 @@ class AdapterCodede extends AbstractAdapter {
         return flag;
     }
 
-    @Override
-    public File download(String fileURL, String saveDir) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public File download(String recource, String saveDir) throws IOException {
+        Downloader d = new Downloader();
+        d.setResource(recource, "");
+        Thread t1 = new Thread(d);
+        t1.start();
+        try {
+            t1.join();
+        } catch (InterruptedException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        return d.getResult();
+
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -201,9 +321,15 @@ class AdapterCodede extends AbstractAdapter {
 
     @Override
     public void run() {
+        String recource = "";
+        try {
+            recource = query(this.start, this.end, this.bbox, this.additionalParameter);
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        }
         try {
             //TODO specify passed String parameters
-            this.result = download(new String(), new String());
+            this.result = download(recource, "");
         } catch (IOException ex) {
             Logger.getLogger(AdapterCodede.class.getName()).log(Level.SEVERE, null, ex);
         }

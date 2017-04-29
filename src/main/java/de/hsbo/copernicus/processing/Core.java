@@ -23,29 +23,32 @@ import org.esa.s2tbx.dataio.jp2.*;
 import org.openide.util.Exceptions;
 
 /**
- * This class manages the communication to the portals and the processors. It's
- * the main entry point for all external applications. The loaded data ate
- * managed internally in a PDM.
+ * This class manages the communication to the portals and the processors. It's the main entry point
+ * for all external applications. The loaded data ate managed internally in a PDM.
  * <link>https://senbox.atlassian.net/wiki/display/SNAP/Product+Data+Model</link>
- * To get a list of currently available processors use getProcessors. Or add a
- * new processor by using addProcessor.
+ * To get a list of currently available processors use getProcessors. Or add a new processor by
+ * using addProcessor.
  *
  * @author Andreas Wandert
  */
 public class Core {
 
     /**
-     * processors includes a set of available Processors idantified by an
-     * integer >1 "0" is reserved for "No ProcessorInterface"
+     * processors includes a set of available Processors idantified by an integer >1 "0" is reserved
+     * for "No ProcessorInterface"
      */
     private static Core instance;
     //processors includes a set of available Processors idantified by an integer >1
     //"0" is reserved for "preprocessing only"
     private HashMap<String, ProcessorInterface> processors;
     //ProductIOManager
-    ProductIOPlugInManager manager;
+    private ProductIOPlugInManager manager;
     private static final String DEFAULT_PATH = "./result";
-    private static final String DEFAULT_OUTPUT_Format = "fiff";
+    private static final String DEFAULT_OUTPUT_FORMAT = "tiff";
+
+    public static final String PROCESSING_NONE = "none";
+    public static final String PROCESSING_CORRECTION = "correction";
+    public static final String PROCESSING_NDVI = "ndvi";
 
     /**
      *
@@ -56,15 +59,14 @@ public class Core {
         initProcessors();
         ProcessorInterface pre = new Corrections();
         ProcessorInterface ndvi = new NDVI();
-        processors.put("correction", pre);
-        processors.put("ndvi", ndvi);
+        processors.put(Core.PROCESSING_CORRECTION, pre);
+        processors.put(Core.PROCESSING_NDVI, ndvi);
         manager = ProductIOPlugInManager.getInstance();
     }
 
     /**
      *
-     * @param customProcessors HashMap with a set of Processors defined by the
-     * user
+     * @param customProcessors HashMap with a set of Processors defined by the user
      *
      */
     private Core(HashMap customProcessors) {
@@ -74,8 +76,8 @@ public class Core {
     }
 
     /**
-     * Methods to ensure that Core is a Singelton Creates an instance of class
-     * core including a default set of processors
+     * Methods to ensure that Core is a Singelton Creates an instance of class core including a
+     * default set of processors
      *
      * @return Core instance
      */
@@ -89,8 +91,8 @@ public class Core {
     }
 
     /**
-     * Creates an instance of class core by using a HashMap of customProcessors
-     * to make them available for future processing
+     * Creates an instance of class core by using a HashMap of customProcessors to make them
+     * available for future processing
      *
      * @param customProcessors
      * @return
@@ -119,34 +121,38 @@ public class Core {
         DataSourceFacade facade = new DataSourceFacade();
         Product input = facade.request(startDate, endDate, bbox, additionalParameter);
         Product outputProduct = null;
-        File output = new File("");
-        ProcessorInterface pre = processors.get(0);
-
+        Product output = null;
         switch (type) {
             // if type is "none" return DataProduct without any processing
-            case "none":
+            case Core.PROCESSING_NONE: {
                 return write(input);
-            case "correction":
+            }
+            case Core.PROCESSING_CORRECTION: {
                 //perform preprocessing only
-                //not yet supported pre.compute(this.file2pdm(input), output);
-                return output;
-            default: {
-                //instanciate an input and an output file
-
-                //call the compute method to start computation of an output file
-                ProcessorInterface pro = processors.get(type);
+                ProcessorInterface pro = processors.get(Core.PROCESSING_CORRECTION);
                 //perform preprocessing
-                //not yet supported pre.compute(this.read(input), output);
-                pro.compute(this.read(output), outputProduct);
+                pro.compute(input, output);
+                return write(output);
+            }
+            default: {
+                ProcessorInterface pro = processors.get(Core.PROCESSING_CORRECTION);
+                //perform preprocessing
+                pro.compute(input, output);
+                //get an other processor for processing
+                if (processors.containsKey(type)) {
+                    pro = processors.get(type);
+                    //perform preprocessing
+                    pro.compute(output, outputProduct);
 
-                return write(outputProduct);
+                    return write(outputProduct);
+                }
+                return write(output);
             }
         }
     }
 
     /**
-     * add a new processor to the processors set returns the index of the new
-     * processor
+     * add a new processor to the processors set returns the index of the new processor
      *
      * @param newProcessor
      */
@@ -166,8 +172,7 @@ public class Core {
     }
 
     /**
-     * add new processors given by an array of Processors return an list of new
-     * indexes
+     * add new processors given by an array of Processors returns a list containing names of new processors
      *
      * @param newProcessors
      * @return
@@ -206,19 +211,20 @@ public class Core {
     public void test() {
         String file = "deinPath";
         try {
-            Product readProduct = ProductIO.readProduct(file);            
+            Product readProduct = ProductIO.readProduct(file);
         } catch (IOException ex) {
             Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
 
     /**
      *
      * @param file
      * @return
+     * @deprecated
      */
-    public Product read(File file) {
+    private Product read(File file) {
         Product product = null;
         JP2ProductReaderPlugin readerPlugIn = new JP2ProductReaderPlugin();
         manager.addReaderPlugIn(readerPlugIn);
@@ -232,13 +238,19 @@ public class Core {
         return product;
     }
 
-    public File write(Product product) {
+    /**
+     *
+     * @param product
+     * @return
+     *
+     */
+    private File write(Product product) {
         try {
-            ProductIO.writeProduct(product, this.DEFAULT_PATH, this.DEFAULT_OUTPUT_Format);
+            ProductIO.writeProduct(product, Core.DEFAULT_PATH, Core.DEFAULT_OUTPUT_FORMAT);
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
-        File file = new File(this.DEFAULT_PATH + "." + this.DEFAULT_OUTPUT_Format);
+        File file = new File(Core.DEFAULT_PATH + "." + Core.DEFAULT_OUTPUT_FORMAT);
         return file;
     }
 
