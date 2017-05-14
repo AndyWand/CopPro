@@ -9,7 +9,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <snap.version>5.0.0</snap.version>
+        <snap.version>6.0.0-SNAPSHOT</snap.version>
         <snap-engine.version>${snap.version}</snap-engine.version>
         <geotools.version>17-SNAPSHOT</geotools.version>
         <java.version>1.8.0</java.version>
@@ -18,8 +18,7 @@
         <mojo.version>2.3</mojo.version>
         <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
         <jpy.version>0.8</jpy.version>
-        <n52.wps.version>4.0.0-beta.3-SNAPSHOT</n52.wps.version>
-        
+        <n52.wps.version>3.6.1</n52.wps.version>        
     </properties>
     
     <dependencies>       
@@ -56,18 +55,33 @@
         <dependency>
             <groupId>org.esa.snap</groupId>
             <artifactId>snap-ndvi</artifactId>
-            <version>5.0.2</version>
+            <version>${snap.version}</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>org.esa.snap</groupId>
             <artifactId>snap-engine</artifactId>
             <version>${snap-engine.version}</version>
         </dependency>
+         
         <dependency>
             <groupId>org.esa.s2tbx</groupId>
             <artifactId>s2tbx</artifactId>
             <version>${snap.version}</version>
-        </dependency>                 
+        </dependency>            
+        --> 
+        <dependency>
+            <groupId>org.esa.s2tbx</groupId>
+            <artifactId>s2tbx-jp2-reader</artifactId>
+            <version>${snap.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.esa.s2tbx</groupId>
+            <artifactId>s2tbx-jp2-writer</artifactId>
+            <version>${snap.version}</version>
+            <type>jar</type>
+        </dependency>            
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-swing</artifactId>
@@ -93,35 +107,32 @@
             <groupId>sax</groupId>
             <artifactId>sax</artifactId>
             <version>2.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.esa.s2tbx</groupId>
-            <artifactId>s2tbx-jp2-reader</artifactId>
-            <version>${snap.version}</version>
-            <type>jar</type>
-        </dependency>      
+        </dependency>    
+        
         <dependency>
             <groupId>org.n52.wps</groupId>
-            <artifactId>52n-wps-algorithm</artifactId>
+            <artifactId>52n-wps-io</artifactId>
             <version>${n52.wps.version}</version>
             <type>jar</type>
-        </dependency>
+        </dependency>        
+        <!--
         <dependency>
             <groupId>org.n52.wps</groupId>
             <artifactId>52n-wps-io</artifactId>
             <version>${n52.wps.version}</version>
             <type>jar</type>
         </dependency>
+        -->
         <dependency>
             <groupId>org.n52.wps</groupId>
             <artifactId>52n-wps-server</artifactId>
-            <version>3.0</version>
+            <version>${n52.wps.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.n52.wps</groupId>
-            <artifactId>52n-wps-commons</artifactId>
-            <version>4.0.0-beta.3-SNAPSHOT</version>
+            <artifactId>52n-wps-algorithm</artifactId>
+            <version>${n52.wps.version}</version>
             <type>jar</type>
         </dependency>
     </dependencies>
@@ -195,29 +206,30 @@
     </build>
     
     <repositories>
+        
         <repository>
             <id>snap-repo-public</id>
             <name>Public Maven Repository for SNAP</name>
             <url>http://nexus.senbox.net/nexus/content/repositories/public</url>
             <releases>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
                 <checksumPolicy>warn</checksumPolicy>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
                 <checksumPolicy>warn</checksumPolicy>
             </snapshots>
-        </repository>
+        </repository>        
         <repository>
             <id>snap-repo-releases</id>
             <name>Public Maven Repository for SNAP</name>
             <url>http://nexus.senbox.net/nexus/content/repositories/releases/</url>     
             <releases>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
                 <checksumPolicy>warn</checksumPolicy>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
                 <checksumPolicy>warn</checksumPolicy>
             </snapshots>      
         </repository>        
@@ -226,32 +238,52 @@
             <name>Public Maven Snapshot Repository for SNAP</name>
             <url>http://nexus.senbox.net/nexus/content/repositories/snapshots/</url>  
             <releases>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
                 <checksumPolicy>warn</checksumPolicy>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
                 <checksumPolicy>warn</checksumPolicy>
             </snapshots>
-        </repository>         
-        <repository>
-            <id>maven2-repository.dev.java.net</id>
-            <name>Java.net repository</name>
-            <url>http://download.java.net/maven/2</url> 
-        </repository>
+        </repository>     
         <repository>
             <id>osgeo</id>
             <name>Open Source Geospatial Foundation Repository</name>
             <url>http://download.osgeo.org/webdav/geotools/</url>
-        </repository>
-        <repository>
+            <releases>
+                <enabled>false</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
+                <checksumPolicy>warn</checksumPolicy>
             </snapshots>
+        </repository>
+        <repository>            
             <id>bounbless</id>
             <name>Boundless Maven Repository</name>
             <url>http://repo.boundlessgeo.com/main/</url>
-        </repository>
+            <releases>
+                <enabled>false</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+        </repository>        
+        <repository>
+            <id>org.n52.wps</id>
+            <name>52n Releases</name>
+            <url>http://52north.org/maven/repo/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>        
+       
     </repositories>
-    <name>CopPro</name>
+    <name>CopPro2</name>
 </project>
