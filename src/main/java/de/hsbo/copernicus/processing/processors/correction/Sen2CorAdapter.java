@@ -1,9 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package de.hsbo.copernicus.processing.Processors.correction;
+package de.hsbo.copernicus.processing.processors.correction;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,6 +14,10 @@ import static org.openide.util.Exceptions.printStackTrace;
 /**
  *
  * @author Andreas Wandert
+ * 
+ * This Adapter is to perform athmospheric corrections by using sen2cor, a SNAP-Plugin provided by ESA
+ * It runs in a seperate Thread, cosumes at leased a file-object pointing to L-1C input data in SAFE-Format 
+ * an returns a corrected L-2A product
  */
 public class Sen2CorAdapter implements Runnable {
 
@@ -157,7 +156,7 @@ public class Sen2CorAdapter implements Runnable {
     /**
      *
      * @param cmd
-     * @return error core: 0: OK, 1: something went wrong
+     * @return error code: 0: OK, 1: something went wrong
      * @throws IOException
      * @throws InterruptedException
      */
@@ -165,7 +164,7 @@ public class Sen2CorAdapter implements Runnable {
         Process tr = getRuntime().exec(cmd);
         BufferedReader stdOut = new BufferedReader(new InputStreamReader(tr.getInputStream()));
         String s;
-        while ((s = stdOut.readLine()) != null && !s.contains(TERMINATION_FILTER)) {
+        while ((s = stdOut.readLine()) != null ) {
             //set the current progress
             if (s.contains(PROGRESS_FILTER)) {
                 String substring = s.split(":")[1];
@@ -217,7 +216,7 @@ public class Sen2CorAdapter implements Runnable {
 
     /**
      *
-     * @return file pointing to result product of the processing before call this make sure the
+     * @return file pointing to result product of the processing, before call this make sure the
      * process has terminated sccessfully by call <code>isDone()<code>
      */
     public File getResult() {

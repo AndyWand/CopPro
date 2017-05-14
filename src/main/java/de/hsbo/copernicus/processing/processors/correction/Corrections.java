@@ -1,12 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package de.hsbo.copernicus.processing.Processors.correction;
+package de.hsbo.copernicus.processing.processors.correction;
 
 import de.hsbo.copernicus.processing.processors.*;
 import org.esa.snap.core.datamodel.Product;
+import org.openide.util.Exceptions;
+
+import static java.lang.System.out;
 
 /**
  *
@@ -15,19 +13,38 @@ import org.esa.snap.core.datamodel.Product;
 public class Corrections implements RasterProcessorInterface {
 
     public Corrections() {
-
     }
 
     @Override
     public synchronized void compute(Product input, Product output) {
-       // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        //load Product
-        //get nessesary bands from product to perform corrections
-        //perform correstions, use sen2core
+        //perform correstions, use sen2core; pass location of input product
         Sen2CorAdapter sen2cor = new Sen2CorAdapter(input.getFileLocation());
         //either extract result or pass corrected scene to caller 
-        
+        Thread t1 = new Thread(sen2cor);
+        t1.start();
+        Double lastProgress = 0.0;
+        while (!sen2cor.isDone()) {
+            try {
+                this.wait(100);
+                if (sen2cor.getProgress()!= lastProgress) {
+                    out.println("Progress: " + sen2cor.getProgress());
+                    lastProgress = sen2cor.getProgress();
+                }
+            } catch (InterruptedException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+
+        try {
+            t1.join();
+        } catch (InterruptedException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+
+        sen2cor.getResult();
+        //TODO: load result into PDM
+        //output = sen2cor.getResult();
+
     }
 
-    
 }

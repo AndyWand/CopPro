@@ -6,24 +6,35 @@
 package de.hsbo.copernicus.datasource;
 
 import java.util.HashMap;
+import de.hsbo.copernicus.configuration.*;
 
 /**
- * This Factory provides an easy way to get an adapter to one of the porals that
- * provide Sentinel Products. If you just request any adapter the factory
- * provides any in the order: AWS, CODE_DE, SciHub
+ * This Factory provides an easy way to get an adapter to one of the porals that provide Sentinel
+ * Products. If you just request any adapter the factory provides any in the order: AWS, CODE_DE,
+ * SciHub
  *
  * @author Andreas Wandert
  */
 class AdapterFactory {
 
-    private HashMap<Integer, AbstractAdapter> adapters = new HashMap<>();
+    private static final HashMap<Integer, AbstractAdapter> ADAPTERS = new HashMap<>();
     private static AdapterFactory instance;
     public static final int AWS = 1;
     public static final int CODEDE = 2;
     public static final int SCIHUB = 3;
+    private static final HashMap<String, Integer> ADAPTERMAP;
+
+    static {
+        ADAPTERMAP = new HashMap<>();
+        ADAPTERMAP.put("aws", AWS);
+        ADAPTERMAP.put("codede", CODEDE);
+        ADAPTERMAP.put("scihub", SCIHUB);
+    }
+    private final String[] order;
 
     private AdapterFactory() {
-
+        Configuration config = ConfigurationReader.getInstance();
+        order = config.getAdapterOrder();
     }
 
     public static AdapterFactory getInstance() {
@@ -35,26 +46,20 @@ class AdapterFactory {
     }
 
     /**
-     * This is the default method to request an adapter the order is: CODE_DE,
-     * AWS, SciHub
+     * This is the default method to request an adapter
      *
      * @return
      * @returns an adapter which is available online
      */
-    public AbstractAdapter getAdapter() {
-
-        if (AdapterCodede.getInstance().isOnline()) {            
-            return AdapterCodede.getInstance();
-        } else {
-            if (AdapterAws.getInstance().isOnline()) {
-                return AdapterAws.getInstance();
-            } else {
-                if (AdapterScihub.getInstance().isOnline()) {
-                    return AdapterScihub.getInstance();
-                }
+    public AbstractAdapter getAdapter() throws Exception {
+        for (String orderIterate : order) {
+            AbstractAdapter temp = AdapterFactory.this.getAdapter(ADAPTERMAP.get(orderIterate));
+            if (temp.isOnline()) {
+                System.out.println("Using Adapter for "+temp.name);
+                return temp;
             }
         }
-        return null;
+        throw new Exception("No Portal is reachable, please try again later!");
     }
 
     /**
@@ -64,7 +69,7 @@ class AdapterFactory {
      * @return an instance of an adapter of the specified type
      */
     public AbstractAdapter getAdapter(int type) {
-        if (adapters.isEmpty() || !adapters.containsKey(type)) {
+        if (ADAPTERS.isEmpty() || !ADAPTERS.containsKey(type)) {
             AbstractAdapter adapter = null;
             switch (type) {
                 case 1:
@@ -77,11 +82,11 @@ class AdapterFactory {
                     adapter = AdapterScihub.getInstance();
                     break;
             }
-            adapters.put(type, adapter);
+            ADAPTERS.put(type, adapter);
             return adapter;
 
         } else {
-            return adapters.get(type);
+            return ADAPTERS.get(type);
         }
     }
 }

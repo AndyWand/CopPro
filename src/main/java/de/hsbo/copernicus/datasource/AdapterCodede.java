@@ -10,8 +10,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import java.net.*;
-import java.io.*;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.logging.Level;
@@ -20,6 +18,7 @@ import math.geom2d.Point2D;
 import org.openide.util.Exceptions;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+import de.hsbo.copernicus.configuration.*;
 
 /**
  * This adapter is to request and download Sentinel-2 Products from Code-DE
@@ -36,10 +35,10 @@ class AdapterCodede extends AbstractAdapter {
 
     /**
      * Attributes predifined by the abstract class AbstractAdapter
-     */
-    private static final String BASEURL = "https://catalog.code-de.org/opensearch/request/?";
-    private static AbstractAdapter instance;
-    public static final String NAME = "codede";
+     */   
+    private static AbstractAdapter instance;  
+    
+    //Available Sensor types
     public static final String SENSOR_TYPE_SOUND = "LIMB";
     public static final String SENSOR_TYPE_RADAR = "RADAR";
     public static final String SENSOR_TYPE_OPTICAL = "OPTICAL";
@@ -50,7 +49,8 @@ class AdapterCodede extends AbstractAdapter {
     private Calendar start, end;
     private Rectangle2D bbox;
     private HashMap additionalParameter;
-    private File result;
+    private File result;    
+    private final String credentials;
 
     /**
      * Attributes nessesary to perform a proper query only in this adapter
@@ -64,7 +64,11 @@ class AdapterCodede extends AbstractAdapter {
     /**
      * Dafault Constuctor
      */
-    private AdapterCodede() {       
+    private AdapterCodede() {     
+        super.name = "codede";
+        Configuration config = ConfigurationReader.getInstance();
+        super.baseUrl = config.getCodedeBaseurl();
+        this.credentials = config.getCodedeCredentials();
     }
 
     /**
@@ -154,7 +158,7 @@ class AdapterCodede extends AbstractAdapter {
             endDateString = "endDate=" + endYear + "-" + endMonthString + "-" + endDayString + "T"
                     + endHourString + ":" + endMinuteString + ":" + endSecondString + "Z";
 
-            result = BASEURL + httpAccept + "&" + parentIdentifier + "&" + startDateString + "&"
+            result = baseUrl + httpAccept + "&" + parentIdentifier + "&" + startDateString + "&"
                     + endDateString;
             return result;
         } else {
@@ -173,20 +177,20 @@ class AdapterCodede extends AbstractAdapter {
         // a polygon is convertes to a series of points
         // "'bbox': '7.1,51.3,7.4,51.4'";
         if (!bbox.vertex(0).contains(bbox.vertex(2))) {
-            String bboxString = "bbox=";
+            String localBboxString = "bbox=";
             Collection<Point2D> c = bbox.vertices();
             int i = 0;
             for (Point2D p : c) {
                 if (i > 0) {
-                    bboxString += "," + p.x() + " " + p.y();
+                    localBboxString += "," + p.x() + " " + p.y();
                     i++;
                 } else {
-                    bboxString += p.x() + " " + p.y();
+                    localBboxString += p.x() + " " + p.y();
                     i++;
                 }
             }
-            bboxString += "'";
-            return bboxString;
+            localBboxString += "'";
+            return localBboxString;
         } else {
             Point2D point = bbox.vertex(0);
             String bboxString = point.x() + ", " + point.y() + "'";
@@ -197,7 +201,7 @@ class AdapterCodede extends AbstractAdapter {
     public String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) throws IOException {
 
-        File xml = new File(".\\");
+        File xml;// = new File(".\\");
         // transform input parameter into a valid request string        
 
         //define optional parameters
@@ -226,19 +230,7 @@ class AdapterCodede extends AbstractAdapter {
 
         String queryString = buildQueryString(startDate, endDate, bbox);// + "&" + cloudCover + "&" + startRecord + "&" + maximumRecords;
 
-        // request CODE-DE via Opensearch
-//        URL request;
-//        request = new URL(queryString);
-//
-//        URLConnection yc = request.openConnection();
-//        BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
-//        String inputLine;
-//
-//        while ((inputLine = in.readLine()) != null) {
-//            System.out.println(inputLine);
-//        }
-//        in.close();
-        System.out.println("QueryString:" + queryString);
+        // request CODE-DE via Opensearch       
         xml = download(queryString, "");
         handleXML(xml);
 
@@ -275,30 +267,10 @@ class AdapterCodede extends AbstractAdapter {
 
         return link;
     }
-
-    /**
-     * *
-     * ask a specific datasource whether its online or not
-     *
-     * @return
-     */
-    @Override
-    public boolean isOnline() {
-        // check if service at 'URL' is available
-        InetAddress Ip;
-        boolean flag = false;
-        try {
-            Ip = InetAddress.getByName(BASEURL);
-            flag = Ip.isReachable(10);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-        }
-        return flag;
-    }
-
+    
     public File download(String recource, String saveDir) throws IOException {
         Downloader d = new Downloader();
-        d.setResource(recource, "");
+        d.setResource(recource, credentials);
         Thread t1 = new Thread(d);
         t1.start();
         try {
@@ -338,6 +310,11 @@ class AdapterCodede extends AbstractAdapter {
     @Override
     public File getResult() {
         return this.result;
+    }
+    
+    @Override
+    public String getName(){
+        return super.name;
     }
 
 }

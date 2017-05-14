@@ -110,19 +110,24 @@ public class ConfigurationReader {
                 String genStore = eElement.getElementsByTagName(searchForGenStore[1]).item(0).getTextContent();
                 configuration.setGeneralStorage(genStore);
 
-//                NodeList a = eElement.getElementsByTagName("productdatastorage");
-//                for (int j = 0; j < a.getLength(); j++) {
-//                    Node no = nL.item(j);
-//                    if (no.getNodeType() == Node.ELEMENT_NODE) {
-//                        Element eElement2 = (Element) no;
-//                        String b = eElement2.getElementsByTagName("productdatastorage").item(0).getTextContent();
-//                        System.out.println(b);
-//                        configuration.setGeneralStorage(b);
-//                    }
-//                }
+
             }
 
         }
+        /**
+         * extract for "decisionorder"
+         */
+        String[] searchForDecisionOrder = Configuration.SEARCH_DS_GENERAL_DECISIONORDER.split(GLOBAL_SEPERATOR);
+        nL = root.getElementsByTagName(searchForDecisionOrder[1]);
+        for (int i = 0; i < nL.getLength(); i++) {
+            Node n = nL.item(i);
+            if (n.getNodeType() == Node.ELEMENT_NODE) {
+                Element eElement = (Element) n;
+                String order = eElement.getElementsByTagName(searchForDecisionOrder[2]).item(0).getTextContent();
+                configuration.setAdapterOrder(order);
+            }
+        }
+        
         /**
          * extract the values for "aws"
          */

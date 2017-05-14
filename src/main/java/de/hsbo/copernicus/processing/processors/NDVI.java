@@ -1,22 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.hsbo.copernicus.processing.processors;
 
 import com.bc.ceres.core.NullProgressMonitor;
 import com.bc.ceres.core.ProgressMonitor;
-import java.io.File;
-import java.io.Writer;
 import org.esa.snap.core.datamodel.Product;
 import org.esa.snap.ndvi.NdviOp;
-import org.esa.snap.core.dataio.ProductIO;
-import org.esa.snap.core.dataio.ProductReader;
-import org.esa.snap.core.dataio.rgb.ImageProductReader;
-import org.esa.s2tbx.dataio.jp2.JP2ProductReaderPlugin;
-import org.esa.s2tbx.dataio.jp2.*;
-import org.esa.snap.core.dataio.ProductWriter;
 
 /**
  *
@@ -27,12 +14,11 @@ public class NDVI implements RasterProcessorInterface {
 
     public static final String NAME = "ndvi";
 
-    public NDVI() {
-
+    public NDVI() {        
     }
 
     public void compute(Product input, Product output) {
-        NdviOp ndvi = new NdviOp();
+        final NdviOp ndvi = new NdviOp();
         //TODO Read file into a Processor
         ndvi.setSourceProduct(input);
         //pick proper bands from the product        

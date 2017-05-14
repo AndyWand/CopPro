@@ -6,26 +6,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import de.hsbo.copernicus.configuration.*;
 
 /**
  * This adapter is to provide communication to Sentinel-2 on AWS
  * <link>http://sentinel-pds.s3-website.eu-central-1.amazonaws.com/</link>
- * performs a data download without queryig or filtering because AWS doesn't
- * offer this
+ * performs a data download without queryig or filtering because AWS doesn't offer this
  *
  * @author Andreas Wandert
  */
 class AdapterAws extends AbstractAdapter {
-
-    public static final String NAME = "aws";
+    
     private static AbstractAdapter instance;
-    private static final String BASEURL = "http://sentinel-s2-l1c.s3.amazonaws.com/tiles";
     //Website:"http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/tiles";
 
     private Calendar start, end;
@@ -35,6 +32,9 @@ class AdapterAws extends AbstractAdapter {
     private static final int BUFFER_SIZE = 4096; //Buffer for download
 
     private AdapterAws() {
+        super.name = "aws";
+        Configuration config = ConfigurationReader.getInstance();
+        super.baseUrl = config.getAwsBaseurl();
     }
 
     /**
@@ -48,10 +48,10 @@ class AdapterAws extends AbstractAdapter {
         }
         return AdapterAws.instance;
     }
-   
+
     private String query(Calendar startDate, Calendar endDate, Rectangle2D bbox,
             HashMap<String, String> additionalParameter) {
-        String queryString = BASEURL;
+        String queryString = baseUrl;
         // the following parameters need to be calulated by thransforming the
         // input parameters to UTM mGrid        
 
@@ -103,8 +103,7 @@ class AdapterAws extends AbstractAdapter {
         if (additionalParameter.containsKey("band")) {
             queryString += '/' + additionalParameter.get("band") + ".jp2";
         }
-        // return the query
-        //System.out.println(queryString);
+        // return the query 
         return queryString;
 
     }
@@ -119,7 +118,6 @@ class AdapterAws extends AbstractAdapter {
      * @return
      * @throws IOException
      */
-  
     private File download(String fileURL, String saveDir) throws IOException {
 
         File result = null;
@@ -140,13 +138,13 @@ class AdapterAws extends AbstractAdapter {
             int contentLength = httpConn.getContentLength();
 
             if (disposition != null) {
-                // extracts file NAME from header field
+                // extracts file name from header field
                 int index = disposition.indexOf("filename=");
                 if (index > 0) {
                     fileName = disposition.substring(index + 10, disposition.length() - 1);
                 }
             } else {
-                // extracts file NAME from baseURL
+                // extracts file name from baseURL
                 fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1, fileURL.length());
             }
 
@@ -175,6 +173,7 @@ class AdapterAws extends AbstractAdapter {
             System.out.println("File downloaded");
         } else {
             System.out.println("No file to download. Server replied HTTP code: " + responseCode);
+            throw new IOException("Server replied HTTP code: " + responseCode);
         }
         httpConn.disconnect();
 
@@ -183,33 +182,16 @@ class AdapterAws extends AbstractAdapter {
         return result;
     }
 
-    @Override
-    public boolean isOnline() {
-        // check if service at 'baseURL' is available
-        InetAddress Ip;
-        boolean flag = false;
-        try {
-            Ip = InetAddress.getByName("172.217.21.238");
-            flag = Ip.isReachable(10);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-
-        }
-        return flag;
-
-    }
-
     /**
-     * This Method is to transform expected input coordinates from geographic
-     * lat/lon to WGS84 UTM coordinates **for internal use only**
+     * This Method is to transform expected input coordinates from geographic lat/lon to WGS84 UTM
+     * coordinates **for internal use only**
      *
      * @param lat lat-coordinate in decimal degree
      * @param lon lon-coordinate in decimal degree
-     * @return String-array format is: [0]: UTM-Zone [1]: latitude band [2]:
-     * square
+     * @return String-array format is: [0]: UTM-Zone [1]: latitude band [2]: square
      *
-     * uses an instance of class CoordinateConverion to cnovert decimal degree
-     * into UTM MGRS licensing this method is using code from
+     * uses an instance of class CoordinateConverion to cnovert decimal degree into UTM MGRS
+     * licensing this method is using code from
      * https://www.ibm.com/developerworks/apps/download/index.jsp?contentid=250050&filename=j-coordconvert.zip&method=http&locale=
      */
     private String[] transform(double lat, double lon) {
@@ -255,13 +237,8 @@ class AdapterAws extends AbstractAdapter {
     @Override
     public void run() {
         try {
-            String query = this.query(this.start, this.end, this.bbox, this.additionalParameter);
-            // sample
-            // query = "http://sentinel-s2-l1c.s3.amazonaws.com/tiles/46/J/DN/2015/8/23/0/B01.jp2";
-            //System.out.println(query);
+            String query = this.query(this.start, this.end, this.bbox, this.additionalParameter);            
             this.result = this.download(query, "");
-            // sample file 
-            //this.result = new File("C:\\Users\\Andreas\\Downloads\\S2A_MSIL1C_20170403T104021_N0204_R008_T32ULC_20170403T104138.SAFE");
         } catch (IOException ex) {
             Logger.getLogger(AdapterAws.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -271,6 +248,11 @@ class AdapterAws extends AbstractAdapter {
     @Override
     public File getResult() {
         return this.result;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
 }

@@ -5,7 +5,7 @@
     </global>
     <datasources>
         <general>
-            <decisionorder>codede,aws,scihub</decisionorder>
+            <decisionorder>scihub,codede,aws</decisionorder>
         </general>
         <aws>
             <baseurl>http://sentinel-s2-l1c.s3.amazonaws.com/tiles</baseurl>
@@ -16,7 +16,7 @@
             <credentials>anwa:ndl?3hs7!%AT</credentials>
         </scihub>
         <codede>
-            <baseurl>https://code-de.org/opensearch/request/?</baseurl>
+            <baseurl>https://catalog.code-de.org/opensearch/request/?</baseurl>
             <credentials>AnWa:2ndl?3hs7!%#A8T</credentials>
         </codede>
     </datasources>

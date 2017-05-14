@@ -1,6 +1,5 @@
 package de.hsbo.copernicus.configuration;
 
-
 /**
  *
  * @author Andreas Wandert
@@ -18,6 +17,8 @@ public class Configuration {
     /**
      * Settings for datasources
      */
+    //general decisionorder
+    public static final String SEARCH_DS_GENERAL_DECISIONORDER = "datasource:general:decisionorder";
     //AWS Settings
     public static final String SEARCH_AWS_BASEURL = "datasource:aws:baseurl";
     //SciHub settings
@@ -46,6 +47,8 @@ public class Configuration {
     /**
      * Settings for datasources
      */
+    private String adapterOrder = "";
+
     //AWS Settings
     private String awsBaseurl = "";
 
@@ -107,7 +110,10 @@ public class Configuration {
     public String getCodedeCredentials() {
         return codedeCredentials;
     }
-   
+
+    public String[] getAdapterOrder() {
+        return adapterOrder.split(",");
+    }
 
     /**
      * consumes the login credentials for Code-DE in plain text formated like :
@@ -122,12 +128,12 @@ public class Configuration {
         this.codedeCredentials = codedeCredentials;
     }
 
-    public void setSEN2COR(String SEN2COR) {
-        this.SEN2COR = SEN2COR;
-    }
-
     public void setGeneralStorage(String generalStorage) {
         this.generalStorage = generalStorage;
+    }
+
+    public void setAdapterOrder(String adapterOrder) {
+        this.adapterOrder = adapterOrder;
     }
 
     public void setAwsBaseurl(String awsBaseurl) {
@@ -145,8 +151,8 @@ public class Configuration {
     /**
      * consumes the login credentials for SciHub in plain text formated like :
      * <username>:<password>
-     * and stores it as an base64 encrypted string  
-     * 
+     * and stores it as an base64 encrypted string
+     *
      * @param SCIHUB_CREDENTIALS
      */
     public void setSciHubCredentials(String SCIHUB_CREDENTIALS) {
@@ -163,15 +169,19 @@ public class Configuration {
         this.SEN2COR = SEN2COR;
     }
 
+    @Override
     public String toString() {
         String result = "";
         //global
         result += "[" + SEARCH_GENERAL_STORAGE + " : " + getGeneralStorage() + "]\n";
+        //general for Datasource
+        result += "[" + SEARCH_DS_GENERAL_DECISIONORDER + " : " + getAdapterOrder()[0] + ", " +
+                getAdapterOrder()[1] + ", " + getAdapterOrder()[2] + "]\n";
         //AWS
         result += "[" + SEARCH_AWS_BASEURL + " : " + getAwsBaseurl() + "]\n";
         //Codede
         result += "[" + SEARCH_CODEDE_BASEURL + " : " + getCodedeBaseurl() + "]\n";
-        result += "[" + SEARCH_CODEDE_CREDENTIALS + " : " + getCodedeCredentials()+ "]\n";
+        result += "[" + SEARCH_CODEDE_CREDENTIALS + " : " + getCodedeCredentials() + "]\n";
         //Scihub
         result += "[" + SEARCH_SCIHUB_BASEURL + " : " + getSciHubBaseurl() + "]\n";
         result += "[" + SEARCH_SCIHUB_ODATAURL + " : " + getSciHubOdataurl() + "]\n";

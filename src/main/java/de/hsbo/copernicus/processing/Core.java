@@ -1,41 +1,40 @@
 package de.hsbo.copernicus.processing;
 
-import de.hsbo.copernicus.processing.Processors.correction.Corrections;
+import de.hsbo.copernicus.processing.processors.correction.Corrections;
 import de.hsbo.copernicus.processing.processors.*;
 
 import de.hsbo.copernicus.datasource.*;
 import math.geom2d.polygon.Rectangle2D;
+import math.geom2d.Point2D;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.media.jai.RenderedOp;
-import javax.media.jai.operator.FileLoadDescriptor;
+import org.esa.s2tbx.dataio.jp2.JP2ProductWriter;
+import org.esa.s2tbx.dataio.jp2.JP2ProductWriterPlugIn;
+import org.esa.s2tbx.dataio.jp2.internal.JP2Constants;
+
 import org.esa.snap.core.dataio.*;
-import org.esa.snap.core.dataio.rgb.ImageProductReaderPlugIn;
 import org.esa.snap.core.datamodel.Product;
-import org.esa.snap.core.util.io.FileUtils;
-import org.esa.s2tbx.dataio.jp2.*;
 import org.openide.util.Exceptions;
 
 /**
  * This class manages the communication to the portals and the processors. It's the main entry point
- * for all external applications. The loaded data ate managed internally in a PDM.
+ * for all external applications. The loaded data are managed internally in a PDM.
  * <link>https://senbox.atlassian.net/wiki/display/SNAP/Product+Data+Model</link>
- * To get a list of currently available processors use getProcessors. Or add a new processor by
- * using addProcessor.
+ * To get a list of currently available processors use getProcessors(). Or add a new processor by
+ * using addProcessor().
  *
  * @author Andreas Wandert
  */
 public class Core {
 
     /**
-     * processors includes a set of available Processors idantified by an integer >1 "0" is reserved
-     * for "No ProcessorInterface"
+     * processors includes a set of available Processors idantified by name, "none" is reserved for
+     * "No ProcessorInterface"
      */
     private static Core instance;
     //processors includes a set of available Processors idantified by an integer >1
@@ -43,8 +42,8 @@ public class Core {
     private HashMap<String, ProcessorInterface> processors;
     //ProductIOManager
     private ProductIOPlugInManager manager;
-    private static final String DEFAULT_PATH = "./result";
-    private static final String DEFAULT_OUTPUT_FORMAT = "tiff";
+    private static final String DEFAULT_PATH = "result";
+    private static final String DEFAULT_OUTPUT_FORMAT = "TIFF";
 
     public static final String PROCESSING_NONE = "none";
     public static final String PROCESSING_CORRECTION = "correction";
@@ -116,10 +115,15 @@ public class Core {
      * @param type
      * @return an processed image if type is not zero else it´s a raw L1-raster
      */
-    public File request(Calendar startDate, Calendar endDate, Rectangle2D bbox, HashMap additionalParameter, String type
-    ) {
+    public File request(Calendar startDate, Calendar endDate, String bbox, HashMap additionalParameter, String type) {
+
+        String[] bboxArray = bbox.split("\\|");
+        Point2D p1 = new Point2D(Double.parseDouble(bboxArray[0]), Double.parseDouble(bboxArray[1]));
+        Point2D p2 = new Point2D(Double.parseDouble(bboxArray[2]), Double.parseDouble(bboxArray[3]));
+        Rectangle2D rectangle = new Rectangle2D(p1, p2);
+
         DataSourceFacade facade = new DataSourceFacade();
-        Product input = facade.request(startDate, endDate, bbox, additionalParameter);
+        Product input = facade.request(startDate, endDate, rectangle, additionalParameter);
         Product outputProduct = null;
         Product output = null;
         switch (type) {
@@ -172,7 +176,8 @@ public class Core {
     }
 
     /**
-     * add new processors given by an array of Processors returns a list containing names of new processors
+     * add new processors given by an array of Processors returns a list containing names of new
+     * processors
      *
      * @param newProcessors
      * @return
@@ -188,7 +193,7 @@ public class Core {
 
     /**
      *
-     * @return
+     * @returns a HashMap of all currently available processors in the Core
      */
     public HashMap getProcessors() {
         return this.processors;
@@ -204,68 +209,28 @@ public class Core {
     }
 
     /**
-     * **
-     * public int getIndex (ProcessorInterface p){ return processors. }
-     *
-     */
-    public void test() {
-        String file = "deinPath";
-        try {
-            Product readProduct = ProductIO.readProduct(file);
-        } catch (IOException ex) {
-            Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
-    /**
-     *
-     * @param file
-     * @return
-     * @deprecated
-     */
-    private Product read(File file) {
-        Product product = null;
-        JP2ProductReaderPlugin readerPlugIn = new JP2ProductReaderPlugin();
-        manager.addReaderPlugIn(readerPlugIn);
-
-        try {
-            product = ProductIO.readProduct(file);
-        } catch (IOException ex) {
-            Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return product;
-    }
-
-    /**
      *
      * @param product
      * @return
      *
      */
-    private File write(Product product) {
+    protected File write(Product product) {
+        File file = new File("C:\\Users\\Andreas\\Desktop\\ResultData","test_product.jp2");
         try {
-            ProductIO.writeProduct(product, Core.DEFAULT_PATH, Core.DEFAULT_OUTPUT_FORMAT);
+            JP2ProductWriterPlugIn jp2WriterPlugIn = new JP2ProductWriterPlugIn();            
+            JP2ProductWriter jp2Writer = new JP2ProductWriter(jp2WriterPlugIn);
+            manager.addWriterPlugIn(jp2WriterPlugIn);
+
+            jp2Writer.writeProductNodes(product, file);
+            jp2Writer.flush();
+            System.out.println("Path of result file: " + file.getAbsolutePath());
+            final String JP2FormatName = JP2Constants.FORMAT_NAMES[0];
+            ProductIO.writeProduct(product, file.getAbsolutePath(), JP2FormatName);
+
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
-        File file = new File(Core.DEFAULT_PATH + "." + Core.DEFAULT_OUTPUT_FORMAT);
         return file;
-    }
-
-    /**
-     * This method is to load a received file i to SNAPs PDM
-     *
-     * @param file
-     * @return
-     */
-    private Product file2pdm2(File file) {
-        RenderedOp sourceImage;
-        sourceImage = FileLoadDescriptor.create(file.getPath(), null, true, null);
-        Product product = new Product(FileUtils.getFilenameWithoutExtension(file), ImageProductReaderPlugIn.FORMAT_NAME, sourceImage.getWidth(), sourceImage.getHeight());
-
-        return product;
     }
 
     private void initProcessors() {

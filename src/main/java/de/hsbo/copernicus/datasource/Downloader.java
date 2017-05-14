@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.hsbo.copernicus.datasource;
 
 import java.io.File;
@@ -13,13 +8,12 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openide.util.Exceptions;
+
+import de.hsbo.copernicus.configuration.*;
 
 /**
  * This class is to download resources asychronoulsy it provides mathods to set resources which will
@@ -32,7 +26,13 @@ class Downloader implements Runnable {
     private static final int BUFFER_SIZE = 4096;
     private String resource;
     private File result;
-    private String credential;
+    private String credentials;
+    private String storage;
+
+    public Downloader() {
+        Configuration config = ConfigurationReader.getInstance();
+        this.storage = config.getGeneralStorage();
+    }
 
     @Override
     public void run() {
@@ -59,19 +59,16 @@ class Downloader implements Runnable {
         recource = uri.toASCIIString();
         System.out.println("Downloader:encoded URL: " + recource);
         File resultFile = null;
-        final String defaultSaveDir = ".";
+        final String defaultSaveDir = this.storage;
         if (saveDir.isEmpty()) {
             saveDir = defaultSaveDir;
         }
-        String basicAuth = "Basic " + new String(java.util.Base64.getEncoder().encode(this.credential.getBytes()));
-        //System.out.println("Authentication: " + basicAuth);
-        //url = new URL(recource);
+        // String basicAuth = "Basic " + new String(java.util.Base64.getEncoder().encode(this.credential.getBytes()));        
         System.out.println("Downloader:URL: " + url);
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
 
-        //Add login credentials as md5 encoded string to the HTTP header
-        httpConn.setRequestProperty("Authorization", basicAuth);
-        //httpConn.addRequestProperty("Authorization", "Basic YW53YTpuZGw/M2hzNyElQVQ");
+        //Add login credentials to the HTTP header             
+        httpConn.setRequestProperty("Authorization", "Basic " + credentials);
         httpConn.connect();
         int responseCode = httpConn.getResponseCode();
 
@@ -125,7 +122,7 @@ class Downloader implements Runnable {
 
             System.out.println("File downloaded");
         } else {
-            System.out.println("No file to download. Server replied HTTP code: " + responseCode);
+//            System.out.println("No file to download. Server replied HTTP code: " + responseCode);
             throw new IOException("Server replied HTTP code: " + responseCode);
         }
         httpConn.disconnect();
@@ -147,7 +144,6 @@ class Downloader implements Runnable {
             } catch (UnsupportedEncodingException ex) {
                 Exceptions.printStackTrace(ex);
             }
-
         }
         return resultMap;
     }
@@ -159,7 +155,7 @@ class Downloader implements Runnable {
      */
     public void setResource(String resource, String credential) {
         this.resource = resource;
-        this.credential = credential;
+        this.credentials = credential;
     }
 
     /**

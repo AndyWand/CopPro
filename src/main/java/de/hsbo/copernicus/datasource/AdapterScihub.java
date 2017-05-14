@@ -4,7 +4,7 @@ import math.geom2d.polygon.Rectangle2D;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetAddress;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -12,16 +12,21 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
 import math.geom2d.Point2D;
+
 import org.openide.util.Exceptions;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import de.hsbo.copernicus.configuration.*;
 
 /**
  * This adapter provides query and download of Sentinel-2 products from Scientific Data Hub (SciHub)
@@ -31,39 +36,40 @@ import org.xml.sax.SAXException;
  */
 class AdapterScihub extends AbstractAdapter {
 
-    // This URL is for ODATA-Hub
-    private static final String BASEURL = "https://scihub.copernicus.eu/dhus/search";
-    //For the Open Search API use "https://scihub.copernicus.eu/apihub/" instead
-    private static final String ODATAURL = "https://scihub.copernicus.eu/dhus/odata/v1";
     private static final String TAG_VALUE_ID = "str";
     private static final String ATTRIBUTE_VALUE_ID = "uuid";
     private static final String ATTRIBUTE_VALUE_IDENTIFIER = "identifier";
     private static final String TAG_VALUE_NAME = "str";
     private static final String TAG_VALUE_ENTRY = "entry";
-    public static final String NAME = "scihub";
     public static final String PLATFORM_S1 = "Sentinel-1";
     public static final String PLATFORM_S2 = "Sentinel-2";
     public static final String PLATFORM_S3 = "Sentinel-3";
     public static final String PLATFORM_S4 = "Sentinel-4";
     public static final String PLATFORM_S5 = "Sentinel-5";
     private static AbstractAdapter instance;
+    //For the Open Search API use "https://scihub.copernicus.eu/apihub/" instead
+    private final String odataUrl;
     private Calendar start, end;
     private Rectangle2D bbox;
     private HashMap additionalParameter;
     private File result;
     private String credentials;
     private String platform = "Sentinel-2";
-    
 
     /**
      * This is a List of available parameter to query a product: For geometric filtering
-     * q=foodprint:"INtersects(Point)" q=foodprint:"Intersects(POLYGON((Point coordinates in decimal
+     * q=foodprint:"Intersects(Point)" q=foodprint:"Intersects(POLYGON((Point coordinates in decimal
      * degees)))" For time filtering q=ingestiondate:[], beginposition, endposition platformname
      * platformname:Sentinel-2 Others: cloudcoverage, swathidentifier, producttype, orbitdirection,
      * orbitnumber, filename for more see:
      * https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/3FullTextSearch
      */
     private AdapterScihub() {
+        super.name = "scihub";
+        Configuration config = ConfigurationReader.getInstance();
+        super.baseUrl = config.getSciHubBaseurl();
+        this.odataUrl = config.getSciHubOdataurl();
+        this.credentials = config.getSciHubCredentials();       
     }
 
     public static AbstractAdapter getInstance() {
@@ -88,7 +94,7 @@ class AdapterScihub extends AbstractAdapter {
         File xml = new File("./");
 
         //TODO build the query string
-        String toRequest = BASEURL + "?q=" + buildQueryString(startDate, endDate, bbox);
+        String toRequest = baseUrl + "?q=" + buildQueryString(startDate, endDate, bbox);
         //send request to SciHub OpenSearch API
         try {
             xml = download(toRequest, "");
@@ -108,20 +114,18 @@ class AdapterScihub extends AbstractAdapter {
  * Nodes('S1A_IW_SLC__1SSV_20161207T013515_20161207T013552_014267_017143_DFE1.SAFE')/
  * Nodes('measurement')/
  * Nodes('s1a-iw1-slc-vv-20161207t013517-20161207t013550-014267-017143-001.tiff')
-         */
-        System.out.println("Tag values are:" + tagValues.toString());
-        toRequest = ODATAURL + "/Products('" + tagValues.get(ATTRIBUTE_VALUE_ID) + "')/$value";//Nodes('" + tagValues.get(ATTRIBUTE_VALUE_IDENTIFIER) + "')/Nodes";
+         */      
+        toRequest = odataUrl + "/Products('" + tagValues.get(ATTRIBUTE_VALUE_ID) + "')/$value";//Nodes('" + tagValues.get(ATTRIBUTE_VALUE_IDENTIFIER) + "')/Nodes";
 
         //use this for an other request
-        try {
-            System.out.println("Requesting....:" + toRequest);
+        try {            
             xml = download(toRequest, "");
         } catch (IOException ex) {
             Logger.getLogger(AdapterScihub.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
             //filter raster name from the responded XML
-            //<title type="text">s1a-iw1-slc-vv-20161207t013517-20161207t013550-014267-017143-001.tiff</title>
+            //<title> type="text">s1a-iw1-slc-vv-20161207t013517-20161207t013550-014267-017143-001.tiff</title>
             tagValues = handleXML(xml, "entry", "title", "", "", "", "", "");
             //TODO "title" has an attribute type="text"
         } catch (IOException ex) {
@@ -138,14 +142,11 @@ class AdapterScihub extends AbstractAdapter {
         //build an other request string by using UUID, Product name and image name
         toRequest += "/Nodes('measurement')/Nodes('" + productName + "')";
 
-        System.out.println();
-        // System.out.println("Request: " + toRequest);
-
         return toRequest;
     }
 
     /**
-     * erstes tag: zweites tag:
+     *
      *
      * @param xmlFile xml file to extract the specified to from
      * @param tagToFilter tag tag2 to filter
@@ -153,8 +154,7 @@ class AdapterScihub extends AbstractAdapter {
      * @return array of strings with tag values in
      */
     private HashMap<String, String> handleXML(File xmlFile, String superLevelTag, String lowerLevelTag1, String lowerLevelTag2, String attributeOfTag1, String attributeOfTag2, String attributeValue1, String attributeValue2) throws FileNotFoundException, IOException {
-        System.out.println("Path to XML file is: " + xmlFile.getAbsolutePath());
-
+      
         String[] resultArray = new String[2];
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = null;
@@ -165,13 +165,13 @@ class AdapterScihub extends AbstractAdapter {
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(AdapterScihub.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if (xmlFile != null) {
-            try {
-                doc = builder.parse(xmlFile);
-            } catch (SAXException | IOException ex) {
-                Logger.getLogger(AdapterScihub.class.getName()).log(Level.SEVERE, null, ex);
-            }
+
+        try {
+            doc = builder.parse(xmlFile);
+        } catch (SAXException | IOException ex) {
+            Logger.getLogger(AdapterScihub.class.getName()).log(Level.SEVERE, null, ex);
         }
+
         //Read the document
         Element root = doc.getDocumentElement();
         NodeList nL = root.getElementsByTagName(superLevelTag);
@@ -183,7 +183,6 @@ class AdapterScihub extends AbstractAdapter {
                 Element eElement;
                 String tag1 = superElement.getElementsByTagName(lowerLevelTag1).item(0).getTextContent();
 
-                System.out.println("Tag1 is: " + tag1);
                 String attribute1 = "", attribute2 = "";
                 //filter for 1st attribute
                 if (!attributeOfTag1.isEmpty() && !attributeOfTag1.isEmpty()) {
@@ -196,42 +195,18 @@ class AdapterScihub extends AbstractAdapter {
                         String valueOfAttribute1 = eElement.getAttributes().getNamedItem("name").getNodeValue();
                         if (valueOfAttribute1.equalsIgnoreCase(attributeValue1)) {
                             attribute1 = eElement.getTextContent();
-                            System.out.println(attributeValue1 + " is: " + eElement.getTextContent());
                         }
                         if (valueOfAttribute1.equalsIgnoreCase(attributeValue2)) {
                             attribute2 = eElement.getTextContent();
-                            System.out.println(attributeValue2 + "is: " + eElement.getTextContent());
                         }
                     }
                 }
                 String[] listelement = {attribute1, tag1};
                 productIds.add(listelement);
             }
-//                //filter for 2nd attribute
-//                if (!attributeOfTag2.isEmpty()) {
-//                    eElement = (Element) superElement.getElementsByTagName(lowerLevelTag1);
-//                    attribute2 = eElement.getAttribute(attributeOfTag2);
-//                    result.put(attributeOfTag2, attribute2);
-//                    System.out.println("value of attr2 is: " + attribute2);
-//                }
 
-//                // filter second tag if lowerLevelTag2 is not empty
-//                if (!lowerLevelTag2.isEmpty() && attributeOfTag2.isEmpty()) {
-//                    String tag2 = eElement.getElementsByTagName(lowerLevelTag2).item(0).getTextContent();
-//                    String[] listelement = {tag1, tag2};
-//                    productIds.add(listelement);
-//                } else {
-//                    if (!attributeOfTag2.isEmpty()) {
-//                        String tag2 = eElement.getAttribute(attributeOfTag2);
-//                        String[] listelement = {tag1, tag2};
-//                        productIds.add(listelement);
-//                    }
-//                    String[] listelement = {tag1};
-//                    productIds.add(listelement);
-//                }
         }
-//    }
-//        //do a size check
+        //do a size check
         if (!productIds.isEmpty()) {
             resultArray = productIds.get(productIds.size() - 1);
             result.put(attributeValue1, resultArray[0]);
@@ -341,26 +316,9 @@ class AdapterScihub extends AbstractAdapter {
         return dateQuery;
     }
 
-    @Override
-    public boolean isOnline() {
-        // check if service at 'BASEURL' is available
-        InetAddress Ip;
-        boolean flag = false;
-        try {
-            Ip = InetAddress.getByName(BASEURL);
-            System.out.println(Ip);
-            flag = Ip.isReachable(10);
-
-            System.out.println(flag);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-        }
-        return flag;
-    }
-
     public synchronized File download(String fileURL, String saveDir) throws IOException {
-        Downloader d = new Downloader();
-        d.setResource(fileURL, credentials);
+        Downloader d = new Downloader();      
+        d.setResource(fileURL, this.credentials);
         Thread t = new Thread(d);
         t.start();
         try {
@@ -387,8 +345,7 @@ class AdapterScihub extends AbstractAdapter {
         this.start = startDate;
         this.end = endDate;
         this.bbox = bbox;
-        this.additionalParameter = additionalParameter;
-        this.credentials = (String) this.additionalParameter.get("credentials");
+        this.additionalParameter = additionalParameter;        
     }
 
     @Override
@@ -412,4 +369,8 @@ class AdapterScihub extends AbstractAdapter {
         this.platform = platformname;
     }
 
+    @Override
+    public String getName() {
+        return super.name;
+    }
 }
